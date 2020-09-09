@@ -4,6 +4,7 @@ import com.template.contracts.WellContract;
 import net.corda.core.contracts.BelongsToContract;
 import net.corda.core.contracts.LinearState;
 import net.corda.core.contracts.UniqueIdentifier;
+import net.corda.core.crypto.SecureHash;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.serialization.ConstructorForDeserialization;
@@ -13,17 +14,10 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 /*
-Version: 1.1
+Version: 1.2
 State is used to store the relevant information for the well states. Some properties are filled out by the well
 operator,some by CalGEM. Spud Date would be added after the Well is approved, and by the well operator.
 Each WellState has an LinearId, which is created with an externalId. linearId = UniqueIdentifier(wellName)
-ExternalId = wellName.
-@input: status(String), wellName(String), owner(Party), operator(Party), lease(String), locationType(String),
-        location(List<Float>), spudDate(LocalDate), API(String), UICProjectNumber(String), permit(String),
-        permitExpiration(LocalDate)
-
-Example query:
-run vaultQuery contractStateType: com.template.states.WellState
  */
 
 @BelongsToContract(WellContract.class)
@@ -40,7 +34,9 @@ public class WellState implements LinearState {
     private final String lease;
     private final String locationType;
     private final List<Float> location;
-//    private final SecureHash.SHA256 wellBoreDiagram = null;
+    //Have to first upload the document to the node. The node returns a has value which is stored here when
+    //the ProposeWellFlow is run.
+    private SecureHash.SHA256 wellBoreDiagram = null;
 //    private final SecureHash.SHA256 areaOfReview = null;
 //    private final Date areaOfReviewDate = null;
 //    private final SecureHash.SHA256 noticeOfIntent = null;
@@ -62,7 +58,14 @@ public class WellState implements LinearState {
 
 // ------------------------------------------- PROPERTIES END----------------------------------------------------------
     //CONSTRUCTORS
-    //for well states that have already been created. Used by UpdateWellFlow
+    /*for well states that have already been created. Used by UpdateWellFlow
+    @input: linearId(UniqueIdentifier), status(String), wellName(String), owner(Party), operator(Party), lease(String), locationType(String),
+    location(List<Float>), spudDate(LocalDate), API(String), UICProjectNumber(String), permit(String),
+    permitExpiration(LocalDate)
+    Example:
+    start UpdateWellFlow externalId: "my well", lease: "Your Field", location: [44.0, 33.00],
+    locationType: "NAT27", spudDate: [2020,10,20]
+    */
     @ConstructorForDeserialization
     public WellState(UniqueIdentifier linearId, String status, String wellName, Party owner, Party operator, String lease, String locationType,
                      List<Float> location, LocalDate spudDate, String API, String UICProjectNumber,
@@ -82,10 +85,18 @@ public class WellState implements LinearState {
         this.permitExpiration = permitExpiration;
     }
 
-    //new well states
+
+    /*for new well states. Used by ProposeWellFlow
+    @input: status(String), wellName(String), owner(Party), operator(Party), lease(String), locationType(String),
+    location(List<Float>), spudDate(LocalDate), API(String), UICProjectNumber(String), permit(String),
+    permitExpiration(LocalDate, docs(SecureHash.SHA256)
+    Example:
+    start ProposeWellFlow wellName: "my well", lease: "Your Field", location: [27.777, 39.11], locationType: "NAT27",
+    docs: 59DB8F7CBA460679443065AC63164D269E4E6CB72CCD3FA71822AE54B0AC2B37
+    */
     public WellState(String status, String wellName, Party owner, Party operator, String lease, String locationType,
                      List<Float> location, LocalDate spudDate, String API, String UICProjectNumber,
-                     String permit, LocalDate permitExpiration) {
+                     String permit, LocalDate permitExpiration, SecureHash.SHA256 docs) {
         this.linearId = new UniqueIdentifier(wellName);
         this.status = status;
         this.wellName = wellName;
@@ -99,6 +110,7 @@ public class WellState implements LinearState {
         this.UICProjectNumber = UICProjectNumber;
         this.permit = permit;
         this.permitExpiration = permitExpiration;
+        this.wellBoreDiagram = docs;
     }
 
     //GETTERS
@@ -114,6 +126,7 @@ public class WellState implements LinearState {
     public String getUICProjectNumber() { return UICProjectNumber; }
     public String getPermit() { return permit; }
     public LocalDate getPermitExpiration() { return permitExpiration; }
+    public SecureHash.SHA256 getWellBoreDiagram() { return wellBoreDiagram; }
 
     @NotNull
     @Override
