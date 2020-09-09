@@ -6,13 +6,14 @@ import net.corda.core.contracts.LinearState;
 import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
+import net.corda.core.serialization.ConstructorForDeserialization;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 /*
-Version: 1.0
+Version: 1.1
 State is used to store the relevant information for the well states. Some properties are filled out by the well
 operator,some by CalGEM. Spud Date would be added after the Well is approved, and by the well operator.
 Each WellState has an LinearId, which is created with an externalId. linearId = UniqueIdentifier(wellName)
@@ -60,7 +61,28 @@ public class WellState implements LinearState {
 //    private final UniqueIdentifier reworkLinearID;
 
 // ------------------------------------------- PROPERTIES END----------------------------------------------------------
-    //CONSTRUCTOR
+    //CONSTRUCTORS
+    //for well states that have already been created. Used by UpdateWellFlow
+    @ConstructorForDeserialization
+    public WellState(UniqueIdentifier linearId, String status, String wellName, Party owner, Party operator, String lease, String locationType,
+                     List<Float> location, LocalDate spudDate, String API, String UICProjectNumber,
+                     String permit, LocalDate permitExpiration) {
+        this.linearId = linearId;
+        this.status = status;
+        this.wellName = wellName;
+        this.owner = owner;
+        this.operator = operator;
+        this.lease = lease;
+        this.locationType = locationType;
+        this.location = location;
+        this.spudDate = spudDate;
+        this.API = API;
+        this.UICProjectNumber = UICProjectNumber;
+        this.permit = permit;
+        this.permitExpiration = permitExpiration;
+    }
+
+    //new well states
     public WellState(String status, String wellName, Party owner, Party operator, String lease, String locationType,
                      List<Float> location, LocalDate spudDate, String API, String UICProjectNumber,
                      String permit, LocalDate permitExpiration) {
@@ -81,7 +103,7 @@ public class WellState implements LinearState {
 
     //GETTERS
     public String getStatus() { return status; }
-    public String getWllName() { return wellName; }
+    public String getWellName() { return wellName; }
     public Party getOwner() { return owner; }
     public Party getOperator() { return operator; }
     public String getLease() { return lease; }
