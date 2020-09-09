@@ -3,6 +3,7 @@ package com.template.flows;
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.contracts.WellContract;
 import com.template.states.WellState;
+import net.corda.core.crypto.SecureHash;
 import net.corda.core.flows.*;
 import net.corda.core.identity.Party;
 import net.corda.core.transactions.SignedTransaction;
@@ -13,7 +14,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 /*
-Version: 1.0
+Version: 1.1
 This Flow takes basic information and produces a WellState with the "PROPOSAL" status.
 This is the first step, most information will be provided by the flow as most fields are empty.
 All dates default to 1999-9-9.
@@ -43,13 +44,16 @@ public class ProposeWellFlow extends FlowLogic<SignedTransaction> {
     private final String lease;
     private final List<Float> location;
     private final String locationType;
+    private final SecureHash.SHA256 wellBoreDiagram;
 
     //CONSTRUCTOR
-    public ProposeWellFlow(String wellName, String lease, List<Float> location, String locationType) {
+    public ProposeWellFlow(String wellName, String lease, List<Float> location, String locationType,
+                           SecureHash.SHA256 docs) {
         this.wellName = wellName;
         this.lease = lease;
         this.location = location;
         this.locationType = locationType;
+        this.wellBoreDiagram = docs;
     }
 
     @Suspendable
@@ -69,10 +73,11 @@ public class ProposeWellFlow extends FlowLogic<SignedTransaction> {
 
         //generate output state
         WellState output = new WellState(status, wellName, owner, operator, lease, locationType, location,
-                spudDate, API, UICProjectNumber, permit, permitExpiration);
+                spudDate, API, UICProjectNumber, permit, permitExpiration, wellBoreDiagram);
 
         //Create and build the builder
         final TransactionBuilder builder = new TransactionBuilder(notary);
+        builder.addAttachment(wellBoreDiagram);
         builder.addOutputState(output, WellContract.ID);
         builder.addCommand(new WellContract.Commands.Propose(), Collections.singletonList(owner.getOwningKey()));
         builder.verify(getServiceHub());
