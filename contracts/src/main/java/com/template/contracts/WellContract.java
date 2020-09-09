@@ -1,34 +1,13 @@
 package com.template.contracts;
 
 
+import com.template.states.WellState;
+import net.corda.core.contracts.Command;
 import net.corda.core.contracts.CommandData;
 import net.corda.core.contracts.Contract;
-import net.corda.core.transactions.LedgerTransaction;
-import org.jetbrains.annotations.NotNull;
-
-public class WellContract implements Contract {
-
-    public static final String ID = "com.template.contracts.WellContract";
-
-    @Override
-    public void verify(@NotNull LedgerTransaction tx) throws IllegalArgumentException {
-    }
-
-    // Used to indicate the transaction's intent.
-    public interface Commands extends CommandData {
-        //In our hello-world app, We will only have one command.
-        class Propose implements Commands {}
-        class Update implements Commands {}
-    }
-}
-=======
-import com.template.states.WellState;
-import net.corda.core.contracts.*;
+import net.corda.core.contracts.ContractState;
 import net.corda.core.identity.Party;
 import net.corda.core.transactions.LedgerTransaction;
-
-import static net.corda.core.contracts.ContractsDSL.requireSingleCommand;
-import static net.corda.core.contracts.ContractsDSL.requireThat;
 
 import java.security.PublicKey;
 import java.util.List;
@@ -38,7 +17,7 @@ import java.util.List;
 // ************
 public class WellContract implements Contract {
 
-    public static String ID;    
+    public static String ID = "com.template.contracts.WellContract";
 
     // A transaction is valid if the verify() function of the contract of all the transaction's input and output states
     // does not throw an exception.
@@ -72,9 +51,9 @@ public class WellContract implements Contract {
         } else if (commandType instanceof Commands.Update) {
             /* Status: Update - Well operator is making update to the well before submit for approval. */
             // "Shape" constraints
-            if (tx.getInputStates().size() >= 1)
+            if (tx.getInputStates().size() == 0)
                 throw new IllegalArgumentException("Update process must have at least 1 input.");
-            if (tx.getOutputStates().size() != 0)
+            if (tx.getOutputStates().size() == 0)
                 throw new IllegalArgumentException("Update process must not have empty output.");
 
             // Contents constraints (Check for valid value/data type).
