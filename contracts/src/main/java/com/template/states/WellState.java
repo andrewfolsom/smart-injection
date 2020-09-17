@@ -113,6 +113,23 @@ public class WellState implements LinearState {
         this.wellBoreDiagram = docs;
     }
 
+    // Copy Constructor
+    public WellState(String newStatus, WellState w) {
+        this.linearId = w.linearId;
+        this.status = newStatus;
+        this.wellName = w.wellName;
+        this.owner = w.owner;
+        this.operator = w.operator;
+        this.lease = w.lease;
+        this.locationType = w.locationType;
+        this.location = w.location;
+        this.spudDate = w.spudDate;
+        this.API = w.API;
+        this.UICProjectNumber = w.UICProjectNumber;
+        this.permit = w.permit;
+        this.permitExpiration = w.permitExpiration;
+    }
+
     //GETTERS
     public String getStatus() { return status; }
     public String getWellName() { return wellName; }
@@ -138,5 +155,18 @@ public class WellState implements LinearState {
     @Override
     public List<AbstractParty> getParticipants() {
         return Collections.singletonList(operator);
+    }
+
+    // Comparison Function
+    public Boolean sameAs(WellState w) {
+        if(this.wellName.equals(w.wellName) && this.owner.equals(w.owner) && this.operator.equals(w.operator)
+        && this.lease.equals(w.lease) && this.locationType.equals(w.locationType) && this.location.equals(w.location)
+        && this.spudDate.equals(w.spudDate) && this.API.equals(w.API)
+        && this.UICProjectNumber.equals(w.UICProjectNumber) && this.permit.equals(w.permit)
+        && this.permitExpiration.equals(w.permitExpiration)) {
+            return Boolean.TRUE;
+        } else {
+            return Boolean.FALSE;
+        }
     }
 }

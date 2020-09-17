@@ -62,7 +62,6 @@ public class WellContract implements Contract {
 
             WellState inputWell = (WellState) input;
             WellState outputWell = (WellState) output;
-            WellState wellState = (WellState) outputWell;
 
             if (!(input instanceof WellState))
                 throw new IllegalArgumentException("Input must be a WellState.");
@@ -91,12 +90,57 @@ public class WellContract implements Contract {
             }
 
             // "Required Signers constraints.
-            Party operator = wellState.getOperator();
+            Party operator = outputWell.getOperator();
             PublicKey operatorKey = operator.getOwningKey();
             if (!(requiredSigners.contains(operatorKey)))
                 throw new IllegalArgumentException("Well Operator must sign the update of the contract.");
 
-        //} else if (commandType instanceof Commands.UICRequest) {
+        } else if (commandType instanceof Commands.Request) {
+            // Well operator requesting UIC review.
+
+            // Shape Constraints: 1 input, 1 output;
+            if (tx.getInputStates().size() != 1) {
+                throw new IllegalArgumentException("Must contain exactly 1 input.");
+            }
+
+            if (tx.getOutputStates().size() != 1) {
+                throw new IllegalArgumentException("Must contain exactly 1 output.");
+            }
+
+            // Content Constraints
+            // Check that all well fields, other than status, are unchanged.
+            WellState inputWell = (WellState) tx.getInput(0);
+            WellState outputWell = (WellState) tx.getOutput(0);
+
+            if (!outputWell.sameAs(inputWell)) {
+                throw new IllegalArgumentException("Unauthorized changes made to well data.");
+            }
+
+            // Check that the permit, Aquifer Exemption, and AoC fields are included
+            if (inputWell.getPermit() == null) {
+                throw new IllegalArgumentException("Permit must be included.");
+            }
+
+        } else if (commandType instanceof Commands.Deny){
+            // CalGEM denying a submitted UIC request.
+
+            // Shape Constraints: 1 input, 1 output;
+            if (tx.getInputStates().size() != 1) {
+                throw new IllegalArgumentException("Must contain exactly 1 input.");
+            }
+
+            if (tx.getOutputStates().size() != 1) {
+                throw new IllegalArgumentException("Must contain exactly 1 output.");
+            }
+
+            // Content Constraints
+            // Check that all well fields, other than status, are unchanged.
+            WellState inputWell = (WellState) tx.getInput(0);
+            WellState outputWell = (WellState) tx.getOutput(0);
+
+            if (!outputWell.sameAs(inputWell)) {
+                throw new IllegalArgumentException("Unauthorized changes made to well data.");
+            }
 
         } else {
             throw new IllegalArgumentException("Command type not recognized.");
@@ -106,7 +150,8 @@ public class WellContract implements Contract {
     public interface Commands extends CommandData {
             class Propose implements Commands {}
             class Update implements Commands {}
-            //class UICRequest implements Commands {}
+            class Request implements Commands {}
+            class Deny implements Commands {}
     }
 
 }
