@@ -1,6 +1,7 @@
 package com.template.contracts;
 
 
+import com.template.states.UICProjectState;
 import com.template.states.WellState;
 import net.corda.core.contracts.Command;
 import net.corda.core.contracts.CommandData;
@@ -121,7 +122,7 @@ public class WellContract implements Contract {
                 throw new IllegalArgumentException("Permit must be included.");
             }
 
-        } else if (commandType instanceof Commands.Deny){
+        } else if (commandType instanceof Commands.Deny) {
             // CalGEM denying a submitted UIC request.
 
             // Shape Constraints: 1 input, 1 output;
@@ -142,6 +143,36 @@ public class WellContract implements Contract {
                 throw new IllegalArgumentException("Unauthorized changes made to well data.");
             }
 
+        } else if (commandType instanceof Commands.Approve) {
+
+            // Shape Constraints
+            if (tx.getInputStates().size() != 1) {
+                throw new IllegalArgumentException("Approve must have 1 input.");
+            }
+
+            if (tx.getOutputStates().size() != 2) {
+                throw new IllegalArgumentException("Approve must have 2 outputs.");
+            }
+
+            // Content Constraints
+            WellState output1 = (WellState) tx.getOutput(0);
+            UICProjectState output2 = (UICProjectState) tx.getOutput(1);
+
+            // Well specific constraints
+            if (output1.getAPI() == null)
+                throw new IllegalArgumentException("API must be provided at approval.");
+            if (output1.getPermit() == null)
+                throw new IllegalArgumentException("Permit must be provided at approval.");
+            if (output1.getPermitExpiration() == null)
+                throw new IllegalArgumentException("Permit expiration must be provided at approval.");
+
+            // Required Signers constraints;
+            Party operator = output1.getOperator();
+            PublicKey operatorKey = operator.getOwningKey();
+            if (!(requiredSigners.contains(operatorKey))) {
+                throw new IllegalArgumentException("Well Operator must sign the approved transaction");
+            }
+
         } else {
             throw new IllegalArgumentException("Command type not recognized.");
         }
@@ -152,6 +183,7 @@ public class WellContract implements Contract {
             class Update implements Commands {}
             class Request implements Commands {}
             class Deny implements Commands {}
+            class Approve implements Commands {}
     }
 
 }

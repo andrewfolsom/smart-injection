@@ -2,7 +2,6 @@ package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.states.WellState;
-import net.corda.core.contracts.Contract;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.crypto.SecureHash;
 import net.corda.core.flows.*;
@@ -15,14 +14,11 @@ import static net.corda.core.contracts.ContractsDSL.requireThat;
 // ******************
 // * Responder flow *
 // ******************
-@InitiatedBy(Initiator.class)
-public class DenyResponder extends FlowLogic<SignedTransaction> {
+@InitiatedBy(RequestInitiatorFlow.class)
+public class ApproveResponder extends FlowLogic<SignedTransaction> {
     private final FlowSession counterpartySession;
 
-    public DenyResponder(FlowSession counterpartySession) {
-        this.counterpartySession = counterpartySession;
-    }
-
+    public ApproveResponder(FlowSession counterpartySession) { this.counterpartySession = counterpartySession; }
     @Suspendable
     @Override
     public SignedTransaction call() throws FlowException {
@@ -33,10 +29,10 @@ public class DenyResponder extends FlowLogic<SignedTransaction> {
             }
 
             @Override
-            protected void checkTransaction(@NotNull SignedTransaction stx) throws FlowException {
+            protected void checkTransaction(@NotNull SignedTransaction stx) {
                 requireThat(require -> {
                     ContractState output = stx.getTx().getOutputs().get(0).getData();
-                    require.using("Must be a well transaction.", output instanceof WellState);
+                    require.using("This must be a Well transaction.", output instanceof WellState);
                     assert output instanceof WellState;
                     return null;
                 });
