@@ -14,7 +14,7 @@ import static net.corda.core.contracts.ContractsDSL.requireThat;
 // ******************
 // * Responder flow *
 // ******************
-@InitiatedBy(RequestInitiatorFlow.class)
+@InitiatedBy(ApproveInitiator.class)
 public class ApproveResponder extends FlowLogic<SignedTransaction> {
     private final FlowSession counterpartySession;
 

@@ -15,7 +15,7 @@ import static net.corda.core.contracts.ContractsDSL.requireThat;
 // ******************
 // * Responder flow *
 // ******************
-@InitiatedBy(Initiator.class)
+@InitiatedBy(DenyInitiator.class)
 public class DenyResponder extends FlowLogic<SignedTransaction> {
     private final FlowSession counterpartySession;
 
