@@ -14,6 +14,7 @@ import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -81,9 +82,10 @@ public class RequestInitiatorFlow extends FlowLogic<SignedTransaction> {
         // Generate an unsigned transaction.
         WellState oldState = input.getState().getData();
         WellState newState = new WellState("UIC Requested", oldState);
+        newState.addParticipant(newState.getCalGem());
         final Command<WellContract.Commands.Request> txCommand = new Command<>(
                 new WellContract.Commands.Request(),
-                Collections.singletonList(newState.getOperator().getOwningKey())
+                Arrays.asList(newState.getOperator().getOwningKey(), newState.getCalGem().getOwningKey())
         );
 
         final TransactionBuilder txBuilder = new TransactionBuilder(notary)
@@ -107,13 +109,11 @@ public class RequestInitiatorFlow extends FlowLogic<SignedTransaction> {
         // Send the state to the counterparty, and receive it back with their signature.
         FlowSession otherPartySession = initiateFlow(calGem);
         final SignedTransaction fullySignedTx = subFlow(
-                new CollectSignaturesFlow(partSignedTx, Collections.singletonList(otherPartySession))
-        );
+                new CollectSignaturesFlow(partSignedTx, Collections.singletonList(otherPartySession)));
 
         // Stage 5.
         progressTracker.setCurrentStep(FINALISING_TRANSACTION);
-        List<FlowSession> sessionList = Collections.singletonList(otherPartySession);
         // Notarise and record the transaction in both parties' vaults.
-        return subFlow(new FinalityFlow(fullySignedTx, sessionList));
+        return subFlow(new FinalityFlow(fullySignedTx, Collections.singletonList(otherPartySession)));
     }
 }

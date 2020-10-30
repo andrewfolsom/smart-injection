@@ -10,7 +10,10 @@ import net.corda.core.identity.Party;
 import net.corda.core.serialization.ConstructorForDeserialization;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Array;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 /*
@@ -31,12 +34,14 @@ public class WellState implements LinearState {
     private final String wellName;
     private final Party owner;
     private final Party operator;
+    private final Party calGem;
     private final String lease;
     private final String locationType;
     private final List<Float> location;
     //Have to first upload the document to the node. The node returns a has value which is stored here when
     //the ProposeWellFlow is run.
     private SecureHash.SHA256 wellBoreDiagram = null;
+    private final List<AbstractParty> participants;
 //    private final SecureHash.SHA256 areaOfReview = null;
 //    private final Date areaOfReviewDate = null;
 //    private final SecureHash.SHA256 noticeOfIntent = null;
@@ -67,14 +72,15 @@ public class WellState implements LinearState {
     locationType: "NAT27", spudDate: [2020,10,20]
     */
     @ConstructorForDeserialization
-    public WellState(UniqueIdentifier linearId, String status, String wellName, Party owner, Party operator, String lease, String locationType,
+    public WellState(UniqueIdentifier linearId, String status, String wellName, Party owner, Party operator, Party calGem, String lease, String locationType,
                      List<Float> location, LocalDate spudDate, String API, String UICProjectNumber,
-                     String permit, LocalDate permitExpiration) {
+                     String permit, LocalDate permitExpiration, List<AbstractParty> participants) {
         this.linearId = linearId;
         this.status = status;
         this.wellName = wellName;
         this.owner = owner;
         this.operator = operator;
+        this.calGem = calGem;
         this.lease = lease;
         this.locationType = locationType;
         this.location = location;
@@ -83,6 +89,7 @@ public class WellState implements LinearState {
         this.UICProjectNumber = UICProjectNumber;
         this.permit = permit;
         this.permitExpiration = permitExpiration;
+        this.participants = participants;
     }
 
 
@@ -94,7 +101,7 @@ public class WellState implements LinearState {
     start ProposeWellFlow wellName: "my well", lease: "Your Field", location: [27.777, 39.11], locationType: "NAT27",
     docs: 59DB8F7CBA460679443065AC63164D269E4E6CB72CCD3FA71822AE54B0AC2B37
     */
-    public WellState(String status, String wellName, Party owner, Party operator, String lease, String locationType,
+    public WellState(String status, String wellName, Party owner, Party operator, Party calGem, String lease, String locationType,
                      List<Float> location, LocalDate spudDate, String API, String UICProjectNumber,
                      String permit, LocalDate permitExpiration, SecureHash.SHA256 docs) {
         this.linearId = new UniqueIdentifier(wellName);
@@ -102,6 +109,7 @@ public class WellState implements LinearState {
         this.wellName = wellName;
         this.owner = owner;
         this.operator = operator;
+        this.calGem = calGem;
         this.lease = lease;
         this.locationType = locationType;
         this.location = location;
@@ -111,6 +119,7 @@ public class WellState implements LinearState {
         this.permit = permit;
         this.permitExpiration = permitExpiration;
         this.wellBoreDiagram = docs;
+        this.participants = new ArrayList<>(Collections.singleton(operator));
     }
 
     // Copy Constructor
@@ -120,6 +129,7 @@ public class WellState implements LinearState {
         this.wellName = w.wellName;
         this.owner = w.owner;
         this.operator = w.operator;
+        this.calGem = w.calGem;
         this.lease = w.lease;
         this.locationType = w.locationType;
         this.location = w.location;
@@ -128,6 +138,7 @@ public class WellState implements LinearState {
         this.UICProjectNumber = w.UICProjectNumber;
         this.permit = w.permit;
         this.permitExpiration = w.permitExpiration;
+        this.participants = new ArrayList<>(w.participants);
     }
 
     //GETTERS
@@ -135,6 +146,7 @@ public class WellState implements LinearState {
     public String getWellName() { return wellName; }
     public Party getOwner() { return owner; }
     public Party getOperator() { return operator; }
+    public Party getCalGem() { return calGem; }
     public String getLease() { return lease; }
     public String getLocationType() { return locationType; }
     public List<Float> getLocation() { return location; }
@@ -154,7 +166,7 @@ public class WellState implements LinearState {
     @NotNull
     @Override
     public List<AbstractParty> getParticipants() {
-        return Collections.singletonList(operator);
+        return participants;
     }
 
     // Comparison Function
@@ -168,5 +180,10 @@ public class WellState implements LinearState {
         } else {
             return Boolean.FALSE;
         }
+    }
+
+    // Update participant list
+    public void addParticipant(Party newParticipant) {
+        this.participants.add(newParticipant);
     }
 }

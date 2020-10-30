@@ -122,6 +122,11 @@ public class WellContract implements Contract {
                 throw new IllegalArgumentException("Permit must be included.");
             }
 
+            Party operator = outputWell.getOperator();
+            PublicKey operatorKey = operator.getOwningKey();
+            if (!(requiredSigners.contains(operatorKey)))
+                throw new IllegalArgumentException("Well Operator must sign the request.");
+
         } else if (commandType instanceof Commands.Deny) {
             // CalGEM denying a submitted UIC request.
 
@@ -142,6 +147,14 @@ public class WellContract implements Contract {
             if (!outputWell.sameAs(inputWell)) {
                 throw new IllegalArgumentException("Unauthorized changes made to well data.");
             }
+
+            Party operator = outputWell.getOperator();
+            Party calGem = outputWell.getCalGem();
+            PublicKey operatorKey = operator.getOwningKey();
+            if (!(requiredSigners.contains(operatorKey)))
+                throw new IllegalArgumentException("Well Operator must sign the request.");
+            if(!(requiredSigners.contains((calGem.getOwningKey()))))
+                throw new IllegalArgumentException("CalGEM must sign the request.");
 
         } else if (commandType instanceof Commands.Approve) {
 
@@ -168,10 +181,12 @@ public class WellContract implements Contract {
 
             // Required Signers constraints;
             Party operator = output1.getOperator();
+            Party calGem = output1.getCalGem();
             PublicKey operatorKey = operator.getOwningKey();
-            if (!(requiredSigners.contains(operatorKey))) {
-                throw new IllegalArgumentException("Well Operator must sign the approved transaction");
-            }
+            if (!(requiredSigners.contains(operatorKey)))
+                throw new IllegalArgumentException("Well Operator must sign the request.");
+            if(!(requiredSigners.contains((calGem.getOwningKey()))))
+                throw new IllegalArgumentException("CalGEM must sign the request.");
 
         } else {
             throw new IllegalArgumentException("Command type not recognized.");

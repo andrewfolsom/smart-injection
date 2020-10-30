@@ -42,15 +42,17 @@ public class ProposeWellFlow extends FlowLogic<SignedTransaction> {
     //PROPERTIES
     private final String wellName;
     private final String lease;
+    private final Party calGem;
     private final List<Float> location;
     private final String locationType;
     private final SecureHash.SHA256 wellBoreDiagram;
 
     //CONSTRUCTOR
-    public ProposeWellFlow(String wellName, String lease, List<Float> location, String locationType,
+    public ProposeWellFlow(String wellName, String lease, Party calGem, List<Float> location, String locationType,
                            SecureHash.SHA256 docs) {
         this.wellName = wellName;
         this.lease = lease;
+        this.calGem = calGem;
         this.location = location;
         this.locationType = locationType;
         this.wellBoreDiagram = docs;
@@ -72,7 +74,7 @@ public class ProposeWellFlow extends FlowLogic<SignedTransaction> {
         final Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
         //generate output state
-        WellState output = new WellState(status, wellName, owner, operator, lease, locationType, location,
+        WellState output = new WellState(status, wellName, owner, operator, calGem, lease, locationType, location,
                 spudDate, API, UICProjectNumber, permit, permitExpiration, wellBoreDiagram);
 
         //Create and build the builder

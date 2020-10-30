@@ -83,7 +83,7 @@ public class ApproveInitiator extends FlowLogic<SignedTransaction> {
 
         // Generate an unsigned transaction.
         WellState oldWellState = input.getState().getData();
-        WellState newWellState = new WellState("UIC Requested", oldWellState);
+        WellState newWellState = new WellState("UIC Approved", oldWellState);
         UICProjectState uicProjectState = new UICProjectState(uicProjectNumber);
         final Command<WellContract.Commands.Request> txCommand = new Command<>(
                 new WellContract.Commands.Request(),

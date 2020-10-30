@@ -6,6 +6,7 @@ import com.template.states.WellState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.flows.*;
+import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.node.services.Vault;
 import net.corda.core.node.services.vault.QueryCriteria;
@@ -70,15 +71,17 @@ public class UpdateWellFlow extends FlowLogic<SignedTransaction> {
         final String wellName = input.getState().getData().getWellName();
         final Party owner = input.getState().getData().getOwner();
         final Party operator = input.getState().getData().getOperator();
+        final Party calGem = input.getState().getData().getCalGem();
         //this info is only changeable by calGEM so is copied from previous state.
         final String API = input.getState().getData().getAPI();
         final String UICProjectNumber = input.getState().getData().getUICProjectNumber();
         final String permit = input.getState().getData().getPermit();
         final LocalDate permitExpiration = input.getState().getData().getPermitExpiration();
+        final List<AbstractParty> participants = input.getState().getData().getParticipants();
 
         final Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
-        WellState output = new WellState(linearId, status, wellName, owner, operator, lease, locationType, location,
-                spudDate, API, UICProjectNumber, permit, permitExpiration);
+        WellState output = new WellState(linearId, status, wellName, owner, operator, calGem, lease, locationType, location,
+                spudDate, API, UICProjectNumber, permit, permitExpiration, participants);
 
         final TransactionBuilder builder = new TransactionBuilder(notary);
         builder.addInputState(input);

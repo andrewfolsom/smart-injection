@@ -41,6 +41,8 @@ public class NodeRPCConnection implements AutoCloseable {
         proxy = rpcConnection.getProxy();
     }
 
+    public CordaRPCOps getProxy() { return proxy; }
+
     @PreDestroy
     public void close() {
         rpcConnection.notifyServerAndClose();
