@@ -24,7 +24,7 @@ import java.util.List;
 // ******************
 @InitiatingFlow
 @StartableByRPC
-public class ApproveInitiator extends FlowLogic<SignedTransaction> {
+public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
     private final String externalId;
     private final String uicProjectNumber;
 
@@ -52,7 +52,7 @@ public class ApproveInitiator extends FlowLogic<SignedTransaction> {
             FINALISING_TRANSACTION
     );
 
-    public ApproveInitiator(String externalId, String uicProjectNumber) {
+    public ApproveInitiatorFlow(String externalId, String uicProjectNumber) {
         this.externalId = externalId;
         this.uicProjectNumber = uicProjectNumber;
     }

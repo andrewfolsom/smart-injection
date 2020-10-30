@@ -2,7 +2,6 @@ package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
 import com.template.states.WellState;
-import net.corda.core.contracts.Contract;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.crypto.SecureHash;
 import net.corda.core.flows.*;
@@ -15,11 +14,11 @@ import static net.corda.core.contracts.ContractsDSL.requireThat;
 // ******************
 // * Responder flow *
 // ******************
-@InitiatedBy(DenyInitiator.class)
-public class DenyResponder extends FlowLogic<SignedTransaction> {
+@InitiatedBy(DenyInitiatorFlow.class)
+public class DenyResponderFlow extends FlowLogic<SignedTransaction> {
     private final FlowSession counterpartySession;
 
-    public DenyResponder(FlowSession counterpartySession) {
+    public DenyResponderFlow(FlowSession counterpartySession) {
         this.counterpartySession = counterpartySession;
     }
 

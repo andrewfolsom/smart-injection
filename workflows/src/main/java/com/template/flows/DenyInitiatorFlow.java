@@ -14,6 +14,7 @@ import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,7 +23,7 @@ import java.util.List;
 // ******************
 @InitiatingFlow
 @StartableByRPC
-public class DenyInitiator extends FlowLogic<SignedTransaction> {
+public class DenyInitiatorFlow extends FlowLogic<SignedTransaction> {
     private final String externalId;
 
     private final ProgressTracker.Step GENERATING_TRANSACTION = new ProgressTracker.Step("Generating transaction based on new Well.");
@@ -49,7 +50,7 @@ public class DenyInitiator extends FlowLogic<SignedTransaction> {
             FINALISING_TRANSACTION
     );
 
-    public DenyInitiator(String externalId) {
+    public DenyInitiatorFlow(String externalId) {
         this.externalId = externalId;
     }
 
@@ -82,7 +83,7 @@ public class DenyInitiator extends FlowLogic<SignedTransaction> {
         WellState newState = new WellState("UIC Denied", oldState);
         final Command<WellContract.Commands.Deny> txCommand = new Command<>(
                 new WellContract.Commands.Deny(),
-                Collections.singletonList(me.getOwningKey())
+                Arrays.asList(me.getOwningKey(), newState.getOperator().getOwningKey())
         );
 
         final TransactionBuilder txBuilder = new TransactionBuilder(notary)

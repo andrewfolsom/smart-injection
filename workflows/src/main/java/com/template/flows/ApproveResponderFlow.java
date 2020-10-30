@@ -14,11 +14,11 @@ import static net.corda.core.contracts.ContractsDSL.requireThat;
 // ******************
 // * Responder flow *
 // ******************
-@InitiatedBy(ApproveInitiator.class)
-public class ApproveResponder extends FlowLogic<SignedTransaction> {
+@InitiatedBy(ApproveInitiatorFlow.class)
+public class ApproveResponderFlow extends FlowLogic<SignedTransaction> {
     private final FlowSession counterpartySession;
 
-    public ApproveResponder(FlowSession counterpartySession) { this.counterpartySession = counterpartySession; }
+    public ApproveResponderFlow(FlowSession counterpartySession) { this.counterpartySession = counterpartySession; }
     @Suspendable
     @Override
     public SignedTransaction call() throws FlowException {

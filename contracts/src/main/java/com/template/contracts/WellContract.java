@@ -123,9 +123,12 @@ public class WellContract implements Contract {
             }
 
             Party operator = outputWell.getOperator();
+            Party calGem = outputWell.getCalGem();
             PublicKey operatorKey = operator.getOwningKey();
             if (!(requiredSigners.contains(operatorKey)))
                 throw new IllegalArgumentException("Well Operator must sign the request.");
+            if (!(requiredSigners.contains(calGem.getOwningKey())))
+                throw new IllegalArgumentException(("CalGEM must sign the request"));
 
         } else if (commandType instanceof Commands.Deny) {
             // CalGEM denying a submitted UIC request.
@@ -153,8 +156,8 @@ public class WellContract implements Contract {
             PublicKey operatorKey = operator.getOwningKey();
             if (!(requiredSigners.contains(operatorKey)))
                 throw new IllegalArgumentException("Well Operator must sign the request.");
-            if(!(requiredSigners.contains((calGem.getOwningKey()))))
-                throw new IllegalArgumentException("CalGEM must sign the request.");
+            if (!(requiredSigners.contains(calGem.getOwningKey())))
+                throw new IllegalArgumentException(("CalGEM must sign the request"));
 
         } else if (commandType instanceof Commands.Approve) {
 
