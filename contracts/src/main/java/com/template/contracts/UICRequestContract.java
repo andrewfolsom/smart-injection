@@ -50,9 +50,13 @@ public class UICRequestContract implements Contract {
 
             // Required Signers constraints;
             Party operator = output1.getOperator();
+            Party calGem = output1.getCalGem();
             PublicKey operatorKey = operator.getOwningKey();
             if (!(requiredSigner.contains(operatorKey))) {
                 throw new IllegalArgumentException("Well Operator must sign the approved transaction");
+            }
+            if (!(requiredSigner.contains(calGem.getOwningKey()))) {
+                throw new IllegalArgumentException("CalGEM must sign the approved transaction");
             }
         }
 

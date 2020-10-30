@@ -15,7 +15,9 @@ import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,7 +28,10 @@ import java.util.List;
 @StartableByRPC
 public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
     private final String externalId;
+    private final String API;
     private final String uicProjectNumber;
+    private final String permit;
+    private final String permitExpiration;
 
     private final ProgressTracker.Step GENERATING_TRANSACTION = new ProgressTracker.Step("Generating transaction based on new Well.");
     private final ProgressTracker.Step VERIFYING_TRANSACTION = new ProgressTracker.Step("Verifying contract constraints.");
@@ -52,9 +57,13 @@ public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
             FINALISING_TRANSACTION
     );
 
-    public ApproveInitiatorFlow(String externalId, String uicProjectNumber) {
+    public ApproveInitiatorFlow(String externalId, String API, String uicProjectNumber, String permit,
+                                String permitExpiration) {
         this.externalId = externalId;
+        this.API = API;
         this.uicProjectNumber = uicProjectNumber;
+        this.permit = permit;
+        this.permitExpiration = permitExpiration;
     }
 
     @Override
@@ -83,11 +92,12 @@ public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
 
         // Generate an unsigned transaction.
         WellState oldWellState = input.getState().getData();
-        WellState newWellState = new WellState("UIC Approved", oldWellState);
-        UICProjectState uicProjectState = new UICProjectState(uicProjectNumber);
-        final Command<WellContract.Commands.Request> txCommand = new Command<>(
-                new WellContract.Commands.Request(),
-                Collections.singletonList(me.getOwningKey())
+        WellState newWellState = new WellState("UIC Approved", API, uicProjectNumber, permit, permitExpiration,
+                oldWellState);
+        UICProjectState uicProjectState = new UICProjectState(uicProjectNumber, newWellState.getParticipants());
+        final Command<WellContract.Commands.Approve> txCommand = new Command<>(
+                new WellContract.Commands.Approve(),
+                Arrays.asList(me.getOwningKey(), newWellState.getOperator().getOwningKey())
         );
 
         final TransactionBuilder txBuilder = new TransactionBuilder(notary)

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -122,7 +123,9 @@ public class WellState implements LinearState {
         this.participants = new ArrayList<>(Collections.singleton(operator));
     }
 
-    // Copy Constructor
+    // Copy Constructors
+
+    // For simple status changes such as Request and Deny
     public WellState(String newStatus, WellState w) {
         this.linearId = w.linearId;
         this.status = newStatus;
@@ -138,6 +141,28 @@ public class WellState implements LinearState {
         this.UICProjectNumber = w.UICProjectNumber;
         this.permit = w.permit;
         this.permitExpiration = w.permitExpiration;
+        this.participants = new ArrayList<>(w.participants);
+    }
+
+    // For use in the CalGem Approval process
+    public WellState(String newStatus, String API, String UICProjectNumber, String permit, String permitExpiration,
+                     WellState w) {
+        this.linearId = w.linearId;
+        this.status = newStatus;
+        this.wellName = w.wellName;
+        this.owner = w.owner;
+        this.operator = w.operator;
+        this.calGem = w.calGem;
+        this.lease = w.lease;
+        this.locationType = w.locationType;
+        this.location = w.location;
+        this.spudDate = w.spudDate;
+        this.API = API;
+        this.UICProjectNumber = UICProjectNumber;
+        this.permit = permit;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        this.permitExpiration = LocalDate.parse(permitExpiration, formatter);
         this.participants = new ArrayList<>(w.participants);
     }
 
