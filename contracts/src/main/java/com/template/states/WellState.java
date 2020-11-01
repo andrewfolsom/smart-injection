@@ -17,21 +17,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-/*
-Version: 1.2
-State is used to store the relevant information for the well states. Some properties are filled out by the well
-operator,some by CalGEM. Spud Date would be added after the Well is approved, and by the well operator.
-Each WellState has an LinearId, which is created with an externalId. linearId = UniqueIdentifier(wellName)
- */
 
 @BelongsToContract(WellContract.class)
 public class WellState implements LinearState {
 //------------------------------------------- PROPERTIES --------------------------------------------------------------
 
-    private final UniqueIdentifier linearId;    //required - provided by corda, proposal
-    private final String status;                //required - provided by respective flow
-
-    //required - provided by well operator, proposal
+    private final UniqueIdentifier linearId;
+    private final String status;
     private final String wellName;
     private final Party owner;
     private final Party operator;
@@ -39,28 +31,15 @@ public class WellState implements LinearState {
     private final String lease;
     private final String locationType;
     private final List<Float> location;
-    //Have to first upload the document to the node. The node returns a has value which is stored here when
-    //the ProposeWellFlow is run.
+    private final LocalDate spudDate;
     private SecureHash.SHA256 wellBoreDiagram = null;
     private final List<AbstractParty> participants;
-//    private final SecureHash.SHA256 areaOfReview = null;
-//    private final Date areaOfReviewDate = null;
-//    private final SecureHash.SHA256 noticeOfIntent = null;
-//    private final Date noticeOfIntentExpiration = null;
 
     //required - provided by CalGem, approval process
     private final String API;
     private final String UICProjectNumber;
     private final String permit;
     private final LocalDate permitExpiration;
-
-    //optional - added by operator after approval
-    private final LocalDate spudDate;
-
-    //optional
-//    private final SecureHash.SHA256 supportDocuments;
-//    private final SecureHash.SHA256 aquiferExemption;
-//    private final UniqueIdentifier reworkLinearID;
 
 // ------------------------------------------- PROPERTIES END----------------------------------------------------------
     //CONSTRUCTORS
@@ -92,7 +71,6 @@ public class WellState implements LinearState {
         this.permitExpiration = permitExpiration;
         this.participants = participants;
     }
-
 
     /*for new well states. Used by ProposeWellFlow
     @input: status(String), wellName(String), owner(Party), operator(Party), lease(String), locationType(String),
@@ -166,7 +144,6 @@ public class WellState implements LinearState {
         this.participants = new ArrayList<>(w.participants);
     }
 
-    //GETTERS
     public String getStatus() { return status; }
     public String getWellName() { return wellName; }
     public Party getOwner() { return owner; }
