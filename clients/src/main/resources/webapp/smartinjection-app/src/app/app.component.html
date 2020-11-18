@@ -1,0 +1,28 @@
+<div align='center'><h1>Well Viewer CRUD with Angular</h1></div>
+
+<div>
+  <table class="table" style="width: 80%">
+    <tr>
+      <th>Well Name</th>
+      <th>Status</th>
+      <th>Lease</th>
+    </tr>
+    <tr *ngFor="let well of wells">
+      <td>
+        {{well.state.data.wellName}}
+      </td>
+      <td>
+        {{well.state.data.status}}
+      </td>
+      <td>
+        {{well.state.data.lease}}
+      </td>
+    </tr>
+  </table>
+</div>
+<div>
+<!--  <p>-->
+<!--    <button (click)="addBook()"> Add Book</button>-->
+<!--  </p>-->
+</div>
+<router-outlet></router-outlet>
