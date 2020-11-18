@@ -1,33 +1,39 @@
 package com.template.webserver;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.template.flows.ProposeWellFlow;
 import com.template.states.WellState;
+import net.corda.client.jackson.JacksonSupport;
+import net.corda.core.contracts.StateAndRef;
 import net.corda.core.crypto.SecureHash;
 import net.corda.core.identity.CordaX500Name;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.CordaRPCOps;
+import net.corda.core.node.services.Vault;
+import net.corda.core.node.services.vault.FieldInfo;
+import net.corda.core.node.services.vault.QueryCriteria;
 import net.corda.core.transactions.SignedTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Define your API endpoints here.
  */
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/") // The paths for HTTP requests are relative to this base path.
 public class Controller {
     private final CordaRPCOps proxy;
@@ -35,6 +41,17 @@ public class Controller {
 
     public Controller(NodeRPCConnection rpc) {
         this.proxy = rpc.proxy;
+    }
+
+    @Configuration
+    class Plugin {
+        @Bean
+        public ObjectMapper registerModule() { return JacksonSupport.createNonRpcMapper(); }
+    }
+
+    @GetMapping(value = "/wells", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<StateAndRef<WellState>> getWells() {
+        return proxy.vaultQuery(WellState.class).getStates();
     }
 
     @GetMapping(value = "/templateendpoint", produces = "text/plain")
@@ -54,7 +71,7 @@ public class Controller {
         location.add(27.777f);
         location.add(39.111f);
         String locationType = "Lat/Long";
-        InputStream jarFile = new FileInputStream("/home/andrew/Desktop/attachments/test.jar");
+        InputStream jarFile = new FileInputStream("/home/andrewfolsom/Desktop/attachments/test.jar");
         SecureHash hash = proxy.uploadAttachmentWithMetadata(jarFile, "Andrew", "test.txt");
 
         Party me = proxy.nodeInfo().getLegalIdentities().get(0);
