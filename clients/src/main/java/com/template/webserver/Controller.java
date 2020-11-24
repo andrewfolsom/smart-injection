@@ -91,18 +91,17 @@ public class Controller {
     }
 
     @PostMapping(value = "/create", consumes = "application/json", produces = "text/plain")
-    public ResponseEntity<String> createWellTwo(@RequestBody List<JSObject> well) throws FileNotFoundException, FileAlreadyExistsException {
+    public ResponseEntity<String> createWellTwo(@RequestBody JSObject well) throws FileNotFoundException, FileAlreadyExistsException {
         Party me = proxy.nodeInfo().getLegalIdentities().get(0);
-        JSObject newWell = well.get(0);
         List<Float> location = new ArrayList<>();
-        location.add(Float.parseFloat((String) newWell.getMember("xLoc")));
-        location.add(Float.parseFloat((String) newWell.getMember("yLoc")));
-        location.add(Float.parseFloat((String) newWell.getMember("zLoc")));
+        location.add(Float.parseFloat((String) well.getMember("xLoc")));
+        location.add(Float.parseFloat((String) well.getMember("yLoc")));
+        location.add(Float.parseFloat((String) well.getMember("zLoc")));
         String name = "O=PartyB,L=New York,C=US";
         Party calGem = Optional.ofNullable(proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(name))).orElseThrow(() -> new IllegalArgumentException("Unknown party name."));
 
         try {
-            SignedTransaction result = proxy.startTrackedFlowDynamic(ProposeWellFlow.class, newWell.getMember("wellName"), newWell.getMember("lease"), calGem, location, newWell.getMember("locationType"), null).getReturnValue().get();
+            SignedTransaction result = proxy.startTrackedFlowDynamic(ProposeWellFlow.class, well.getMember("wellName"), well.getMember("lease"), calGem, location, well.getMember("locationType"), null).getReturnValue().get();
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
