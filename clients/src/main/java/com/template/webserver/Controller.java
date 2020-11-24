@@ -13,6 +13,7 @@ import net.corda.core.node.services.Vault;
 import net.corda.core.node.services.vault.FieldInfo;
 import net.corda.core.node.services.vault.QueryCriteria;
 import net.corda.core.transactions.SignedTransaction;
+import netscape.javascript.JSObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -79,6 +80,29 @@ public class Controller {
 
         try {
             SignedTransaction result = proxy.startTrackedFlowDynamic(ProposeWellFlow.class, wellName, lease, calGem, location, locationType, hash).getReturnValue().get();
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/create", consumes = "application/json", produces = "text/plain")
+    public ResponseEntity<String> createWellTwo(@RequestBody List<JSObject> well) throws FileNotFoundException, FileAlreadyExistsException {
+        Party me = proxy.nodeInfo().getLegalIdentities().get(0);
+        JSObject newWell = well.get(0);
+        List<Float> location = new ArrayList<>();
+        location.add(Float.parseFloat((String) newWell.getMember("xLoc")));
+        location.add(Float.parseFloat((String) newWell.getMember("yLoc")));
+        location.add(Float.parseFloat((String) newWell.getMember("zLoc")));
+        String name = "O=PartyB,L=New York,C=US";
+        Party calGem = Optional.ofNullable(proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(name))).orElseThrow(() -> new IllegalArgumentException("Unknown party name."));
+
+        try {
+            SignedTransaction result = proxy.startTrackedFlowDynamic(ProposeWellFlow.class, newWell.getMember("wellName"), newWell.getMember("lease"), calGem, location, newWell.getMember("locationType"), null).getReturnValue().get();
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
