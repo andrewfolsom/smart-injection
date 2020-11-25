@@ -100,6 +100,27 @@ public class WellState implements LinearState {
         this.wellBoreDiagram = docs;
         this.participants = new ArrayList<>(Collections.singleton(operator));
     }
+//
+//    // Alternate new well constructor
+//    public WellState(String status, String wellName, Party owner, Party operator, Party calGem, String lease, String locationType,
+//                     List<Float> location,SecureHash.SHA256 docs) {
+//         this.linearId = new UniqueIdentifier(wellName);
+//        this.status = status;
+//        this.wellName = wellName;
+//        this.owner = owner;
+//        this.operator = operator;
+//        this.calGem = calGem;
+//        this.lease = lease;
+//        this.locationType = locationType;
+//        this.location = location;
+//        this.spudDate = null;
+//        this.API = "N/A";
+//        this.UICProjectNumber = "N/A";
+//        this.permit = "N/A";
+//        this.permitExpiration = null;
+//        this.wellBoreDiagram = docs;
+//        this.participants = new ArrayList<>(Collections.singleton(operator));
+//    }
 
     // Copy Constructors
 

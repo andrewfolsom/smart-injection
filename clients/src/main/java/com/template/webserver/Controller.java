@@ -25,16 +25,19 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.time.LocalDate;
 import java.util.*;
+import com.template.webserver.WellForm;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Define your API endpoints here.
  */
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4200/welloperator/create-well"})
 @RequestMapping("/") // The paths for HTTP requests are relative to this base path.
 public class Controller {
     private final CordaRPCOps proxy;
@@ -90,18 +93,29 @@ public class Controller {
         }
     }
 
-    @PostMapping(value = "/create", consumes = "application/json", produces = "text/plain")
-    public ResponseEntity<String> createWellTwo(@RequestBody JSObject well) throws FileNotFoundException, FileAlreadyExistsException {
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> createWellTwo(@RequestParam("wellName") String wellName,
+                                                @RequestParam("lease") String lease,
+                                                @RequestParam("xLoc") String xLoc,
+                                                @RequestParam("yLoc") String yLoc,
+                                                @RequestParam("zLoc") String zLoc,
+                                                @RequestParam("locationType") String locationType,
+                                                @RequestParam("attachment")MultipartFile attachment) throws IOException {
         Party me = proxy.nodeInfo().getLegalIdentities().get(0);
         List<Float> location = new ArrayList<>();
-        location.add(Float.parseFloat((String) well.getMember("xLoc")));
-        location.add(Float.parseFloat((String) well.getMember("yLoc")));
-        location.add(Float.parseFloat((String) well.getMember("zLoc")));
+        location.add(Float.parseFloat(xLoc));
+        location.add(Float.parseFloat(yLoc));
+        location.add(Float.parseFloat(zLoc));
         String name = "O=PartyB,L=New York,C=US";
+        String status = "Proposed";
+        InputStream jarFile = attachment.getInputStream();
+        SecureHash hash = proxy.uploadAttachmentWithMetadata(jarFile, me.toString(), Objects.requireNonNull(attachment.getOriginalFilename()));
         Party calGem = Optional.ofNullable(proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(name))).orElseThrow(() -> new IllegalArgumentException("Unknown party name."));
 
         try {
-            SignedTransaction result = proxy.startTrackedFlowDynamic(ProposeWellFlow.class, well.getMember("wellName"), well.getMember("lease"), calGem, location, well.getMember("locationType"), null).getReturnValue().get();
+            SignedTransaction result = proxy.startTrackedFlowDynamic(
+                    ProposeWellFlow.class, wellName, lease, calGem, location, locationType, hash)
+                    .getReturnValue().get();
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));

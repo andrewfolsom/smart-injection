@@ -64,10 +64,10 @@ public class ProposeWellFlow extends FlowLogic<SignedTransaction> {
         //LOCAL PROPERTIES
         final Party owner = getOurIdentity();
         final Party operator = getOurIdentity();
-        final String API = "NONE";
-        final String status = "PROPOSAL";
-        final String UICProjectNumber = "NONE";
-        final String permit = "NONE";
+        final String API = "N/A";
+        final String status = "Proposed";
+        final String UICProjectNumber = "N/A";
+        final String permit = "N/A";
         final LocalDate spudDate = LocalDate.of(1999,9,9);
         final LocalDate permitExpiration = LocalDate.of(1999,9,9);
 
