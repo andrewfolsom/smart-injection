@@ -59,11 +59,19 @@ public class UICRequestContract implements Contract {
                 throw new IllegalArgumentException("CalGEM must sign the approved transaction");
             }
         }
+        else if (commandType instanceof Commands.Create) {
+            if (tx.getInputStates().size() != 0) { throw new IllegalArgumentException("Approve must have 0 input."); }
+            if (tx.getOutputStates().size() != 1) { throw new IllegalArgumentException("Approve must have 1 outputs."); }
+            UICProjectState output1 = (UICProjectState) tx.getOutput(0);
+            if (output1.getUICProjectNumber().equals("NONE"))
+                throw new IllegalArgumentException("UIC project number must be NONE");
+        }
 
     }
 
     // Used to indicate the transaction's intent.
     public interface Commands extends CommandData {
         class Approve implements Commands {}
+        class Create implements Commands {}
     }
 }
