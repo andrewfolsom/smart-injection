@@ -70,12 +70,13 @@ public class ProposeWellFlow extends FlowLogic<SignedTransaction> {
         final String permit = "N/A";
         final LocalDate spudDate = LocalDate.of(1999,9,9);
         final LocalDate permitExpiration = LocalDate.of(1999,9,9);
+        final String projectName = "N/A";
 
         final Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
         //generate output state
         WellState output = new WellState(status, wellName, owner, operator, calGem, lease, locationType, location,
-                spudDate, API, UICProjectNumber, permit, permitExpiration, wellBoreDiagram);
+                spudDate, API, UICProjectNumber, permit, permitExpiration, wellBoreDiagram, projectName);
 
         //Create and build the builder
         final TransactionBuilder builder = new TransactionBuilder(notary);

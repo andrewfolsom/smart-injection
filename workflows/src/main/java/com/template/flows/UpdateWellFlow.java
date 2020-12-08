@@ -58,32 +58,32 @@ public class UpdateWellFlow extends FlowLogic<SignedTransaction> {
         this.spudDate = LocalDate.of(spudDate.get(0),spudDate.get(1),spudDate.get(2));
     }
 
+    public WellState copyState(String lease, String locationType, List<Float> location, LocalDate spudDate,
+                               WellState d) {
+        return new WellState(d.getLinearId(), d.getStatus(), d.getWellName(), d.getOwner(),
+                d.getOperator(), d.getCalGem(), lease, locationType, location,
+                spudDate, d.getAPI(), d.getProjectName(), d.getPermit(), d.getPermitExpiration(),
+                d.getParticipants(), d.getProjectName());
+    }
+
     @Suspendable
     @Override
     public SignedTransaction call() throws FlowException {
         //grab the state from the vault.
         StateAndRef<WellState> input = getServiceHub().getVaultService()
                 .queryBy(WellState.class, criteria).getStates().get(0);
-
-        //this info is not changed by this flow so just copies it from the previous state.
-        final UniqueIdentifier linearId = input.getState().getData().getLinearId();
-        final String status = input.getState().getData().getStatus();
-        final String wellName = input.getState().getData().getWellName();
+        //grab owner
         final Party owner = input.getState().getData().getOwner();
-        final Party operator = input.getState().getData().getOperator();
-        final Party calGem = input.getState().getData().getCalGem();
-        //this info is only changeable by calGEM so is copied from previous state.
-        final String API = input.getState().getData().getAPI();
-        final String UICProjectNumber = input.getState().getData().getUICProjectNumber();
-        final String permit = input.getState().getData().getPermit();
-        final LocalDate permitExpiration = input.getState().getData().getPermitExpiration();
-        final List<AbstractParty> participants = input.getState().getData().getParticipants();
 
+        //notary
         final Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
-        WellState output = new WellState(linearId, status, wellName, owner, operator, calGem, lease, locationType, location,
-                spudDate, API, UICProjectNumber, permit, permitExpiration, participants);
 
+        //output state
+        WellState output = copyState(lease, locationType, location, spudDate, input.getState().getData());
+
+        //start builder
         final TransactionBuilder builder = new TransactionBuilder(notary);
+
         builder.addInputState(input);
         builder.addOutputState(output, WellContract.ID);
         builder.addCommand(new WellContract.Commands.Update(), Collections.singletonList(owner.getOwningKey()));

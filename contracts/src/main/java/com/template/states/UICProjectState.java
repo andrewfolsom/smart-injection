@@ -33,19 +33,12 @@ public class UICProjectState implements LinearState {
         this.participants = participants;
         this.projectName = projectName;
     }
-
-    public UICProjectState(String UICProjectNumber, List<AbstractParty> participants) {
-        this.linearId = new UniqueIdentifier(UICProjectNumber);
-        this.UICProjectNumber = UICProjectNumber;
-        this.participants = new ArrayList<>(participants);
-    }
-
-    //For Initial creation.
-    public UICProjectState(String projectName, Party operator) {
+    //Should not be used by ApproveInitiatorFlow.
+    public UICProjectState(String projectName, List<AbstractParty> participants) {
         this.linearId = new UniqueIdentifier(projectName);
         this.UICProjectNumber = "NONE";
         this.projectName = projectName;
-        this.participants = new ArrayList<>(Collections.singleton(operator));
+        this.participants = new ArrayList<>(participants);
     }
 
     //copy constructor, for updating UIC projectNum

@@ -5,6 +5,7 @@ import co.paralleluniverse.fibers.Suspendable;
 import com.template.contracts.UICRequestContract;
 import com.template.states.UICProjectState;
 import net.corda.core.flows.*;
+import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
@@ -41,7 +42,7 @@ public class CreateProjectFlow extends FlowLogic<SignedTransaction> {
         final Party notary = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
 
         //generate output state
-        UICProjectState output = new UICProjectState(projectName, operator);
+        UICProjectState output = new UICProjectState(projectName, Collections.singletonList(operator));
 
         //Create and build the builder
         final TransactionBuilder builder = new TransactionBuilder(notary);

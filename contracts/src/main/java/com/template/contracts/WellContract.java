@@ -188,8 +188,13 @@ public class WellContract implements Contract {
             PublicKey operatorKey = operator.getOwningKey();
             if (!(requiredSigners.contains(operatorKey)))
                 throw new IllegalArgumentException("Well Operator must sign the request.");
-            if(!(requiredSigners.contains((calGem.getOwningKey()))))
+            if (!(requiredSigners.contains((calGem.getOwningKey()))))
                 throw new IllegalArgumentException("CalGEM must sign the request.");
+
+        } else if (commandType instanceof Commands.AddRemove) {
+            if (tx.getInputStates().size() == tx.getOutputStates().size()) {
+                throw new IllegalArgumentException("Number of inputs must match number of outputs.");
+            }
 
         } else {
             throw new IllegalArgumentException("Command type not recognized.");
@@ -202,6 +207,7 @@ public class WellContract implements Contract {
             class Request implements Commands {}
             class Deny implements Commands {}
             class Approve implements Commands {}
+            class AddRemove implements Commands {}
     }
 
 }

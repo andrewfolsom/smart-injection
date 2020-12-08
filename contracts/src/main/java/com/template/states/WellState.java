@@ -32,6 +32,7 @@ public class WellState implements LinearState {
     private final String locationType;
     private final List<Float> location;
     private final LocalDate spudDate;
+    private final String projectName;
     private SecureHash.SHA256 wellBoreDiagram = null;
     private final List<AbstractParty> participants;
 
@@ -54,7 +55,7 @@ public class WellState implements LinearState {
     @ConstructorForDeserialization
     public WellState(UniqueIdentifier linearId, String status, String wellName, Party owner, Party operator, Party calGem, String lease, String locationType,
                      List<Float> location, LocalDate spudDate, String API, String UICProjectNumber,
-                     String permit, LocalDate permitExpiration, List<AbstractParty> participants) {
+                     String permit, LocalDate permitExpiration, List<AbstractParty> participants, String projectName) {
         this.linearId = linearId;
         this.status = status;
         this.wellName = wellName;
@@ -70,6 +71,7 @@ public class WellState implements LinearState {
         this.permit = permit;
         this.permitExpiration = permitExpiration;
         this.participants = participants;
+        this.projectName = projectName;
     }
 
     /*for new well states. Used by ProposeWellFlow
@@ -82,7 +84,7 @@ public class WellState implements LinearState {
     */
     public WellState(String status, String wellName, Party owner, Party operator, Party calGem, String lease, String locationType,
                      List<Float> location, LocalDate spudDate, String API, String UICProjectNumber,
-                     String permit, LocalDate permitExpiration, SecureHash.SHA256 docs) {
+                     String permit, LocalDate permitExpiration, SecureHash.SHA256 docs, String projectName) {
         this.linearId = new UniqueIdentifier(wellName);
         this.status = status;
         this.wellName = wellName;
@@ -99,6 +101,7 @@ public class WellState implements LinearState {
         this.permitExpiration = permitExpiration;
         this.wellBoreDiagram = docs;
         this.participants = new ArrayList<>(Collections.singleton(operator));
+        this.projectName = projectName;
     }
 
     // For simple status changes such as Request and Deny
@@ -118,6 +121,7 @@ public class WellState implements LinearState {
         this.permit = w.permit;
         this.permitExpiration = w.permitExpiration;
         this.participants = new ArrayList<>(w.participants);
+        this.projectName = w.projectName;
     }
 
     // For use in the CalGem Approval process
@@ -136,6 +140,7 @@ public class WellState implements LinearState {
         this.API = API;
         this.UICProjectNumber = UICProjectNumber;
         this.permit = permit;
+        this.projectName = w.projectName;
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         this.permitExpiration = LocalDate.parse(permitExpiration, formatter);
@@ -156,6 +161,7 @@ public class WellState implements LinearState {
     public String getPermit() { return permit; }
     public LocalDate getPermitExpiration() { return permitExpiration; }
     public SecureHash.SHA256 getWellBoreDiagram() { return wellBoreDiagram; }
+    public String getProjectName() { return projectName; }
 
     @NotNull
     @Override
