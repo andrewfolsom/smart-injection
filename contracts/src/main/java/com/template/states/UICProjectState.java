@@ -24,21 +24,34 @@ public class UICProjectState implements LinearState {
     private final String UICProjectNumber;
     private List<AbstractParty> participants;
     private String projectName;
+    private List<UniqueIdentifier> wellIds;
 
     @ConstructorForDeserialization
     public UICProjectState(UniqueIdentifier linearId, String UICProjectNumber, List<AbstractParty> participants,
-                            String projectName) {
+                            String projectName, List<UniqueIdentifier> wellIds) {
         this.linearId = linearId;
         this.UICProjectNumber = UICProjectNumber;
         this.participants = participants;
         this.projectName = projectName;
+        this.wellIds = wellIds;
     }
-    //Should not be used by ApproveInitiatorFlow.
+
+    //For CreateProjectFlow
     public UICProjectState(String projectName, List<AbstractParty> participants) {
         this.linearId = new UniqueIdentifier(projectName);
         this.UICProjectNumber = "NONE";
         this.projectName = projectName;
         this.participants = new ArrayList<>(participants);
+        this.wellIds = new ArrayList<>();
+    }
+
+    //For AddRemoveFlow
+    public UICProjectState(List<UniqueIdentifier> wellIds, UICProjectState u) {
+        this.linearId = u.linearId;
+        this.UICProjectNumber = u.UICProjectNumber;
+        this.projectName = u.projectName;
+        this.participants = u.participants;
+        this.wellIds = new ArrayList<>(wellIds);
     }
 
     //copy constructor, for updating UIC projectNum

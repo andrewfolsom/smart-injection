@@ -1,8 +1,11 @@
 package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+import com.template.contracts.UICRequestContract;
 import com.template.contracts.WellContract;
+import com.template.states.UICProjectState;
 import com.template.states.WellState;
+import net.corda.core.contracts.Command;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.flows.*;
@@ -30,11 +33,15 @@ public class AddRemoveWellFlow extends FlowLogic<SignedTransaction> {
 
     private final List<String> externalIdList;
     private final List<String> updateList;
+    private List<UniqueIdentifier> wellIds;
+    private final String projectName;
 
 
-    public AddRemoveWellFlow(List<String> externalIds, List<String> updates) {
+    public AddRemoveWellFlow(String projectName, List<String> externalIds, List<String> updates) {
         this.externalIdList = new ArrayList<>(externalIds);
         this.updateList = new ArrayList<>(updates);
+        this.projectName = projectName;
+        this.wellIds = new ArrayList<>();
     }
 
     public WellState copyState(String update, WellState d) {
@@ -56,6 +63,15 @@ public class AddRemoveWellFlow extends FlowLogic<SignedTransaction> {
         final TransactionBuilder builder = new TransactionBuilder(notary);
         final Party operator = getOurIdentity();
 
+        WellContract.Commands.AddRemove commandOne = new WellContract.Commands.AddRemove();
+        UICRequestContract.Commands.Update commandTwo = new UICRequestContract.Commands.Update();
+
+        Collections.singletonList(operator.getOwningKey());
+        List<PublicKey> requiredSigners = Collections.singletonList(operator.getOwningKey());
+        Command<WellContract.Commands.AddRemove> wellCommand = new Command<>(commandOne, requiredSigners);
+        Command<UICRequestContract.Commands.Update> uicCommand = new Command<>(commandTwo, requiredSigners);
+
+
         for (int i = 0; i < externalIdList.size(); i++) {
             //Set criteria
             criteria = new QueryCriteria.LinearStateQueryCriteria(null,null,
@@ -70,32 +86,24 @@ public class AddRemoveWellFlow extends FlowLogic<SignedTransaction> {
             WellState output = copyState(updateList.get(i), input.getState().getData());
             //add output to builder
             builder.addOutputState(output, WellContract.ID);
+            builder.addCommand(wellCommand);
+            if (!(updateList.get(i).equals("NONE"))) {
+                wellIds.add(input.getState().getData().getLinearId());
+            }
         }
+        criteria = new QueryCriteria.LinearStateQueryCriteria(null,null,
+                Collections.singletonList(projectName), Vault.StateStatus.UNCONSUMED);
 
-//        StateAndRef<WellState> input = getServiceHub().getVaultService()
-//                .queryBy(WellState.class, criteria).getStates().get(0);
-//
-//        //this info is not changed by this flow so just copies it from the previous state.
-//        final UniqueIdentifier linearId = input.getState().getData().getLinearId();
-//        final String status = input.getState().getData().getStatus();
-//        final String wellName = input.getState().getData().getWellName();
-//        final Party owner = input.getState().getData().getOwner();
-//        final Party operator = input.getState().getData().getOperator();
-//        final Party calGem = input.getState().getData().getCalGem();
-//        //this info is only changeable by calGEM so is copied from previous state.
-//        final String API = input.getState().getData().getAPI();
-//        final String UICProjectNumber = input.getState().getData().getUICProjectNumber();
-//        final String permit = input.getState().getData().getPermit();
-//        final LocalDate permitExpiration = input.getState().getData().getPermitExpiration();
-//        final List<AbstractParty> participants = input.getState().getData().getParticipants();
-//
-//        WellState output = new WellState(linearId, status, wellName, owner, operator, calGem, lease, locationType, location,
-//                spudDate, API, UICProjectNumber, permit, permitExpiration, participants);
+        StateAndRef<UICProjectState> input = getServiceHub().getVaultService()
+                .queryBy(UICProjectState.class, criteria).getStates().get(0);
+        builder.addInputState(input);
 
-//        builder.addInputState(input);
-//        builder.addOutputState(output, WellContract.ID);
-//        builder.addCommand(new WellContract.Commands.Update(), Collections.singletonList(owner.getOwningKey()));
-        builder.addCommand(new WellContract.Commands.Update(), Collections.singletonList(operator.getOwningKey()));
+        UICProjectState UICoutput = new UICProjectState(wellIds, input.getState().getData());
+        builder.addOutputState(UICoutput);
+        builder.addCommand(uicCommand);
+
+//        builder.addCommand(commandOne, Collections.singletonList(operator.getOwningKey()));
+//        builder.addCommand(commandTwo, Collections.singletonList(operator.getOwningKey()));
         builder.verify(getServiceHub());
 
         SignedTransaction signedTransaction = getServiceHub().signInitialTransaction(builder);

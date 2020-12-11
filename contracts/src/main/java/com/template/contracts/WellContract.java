@@ -24,8 +24,7 @@ public class WellContract implements Contract {
     // does not throw an exception.
     @Override
     public void verify(LedgerTransaction tx) throws IllegalArgumentException {
-        if (tx.getCommands().size() != 1)
-            throw new IllegalArgumentException("Transaction must have one command");
+
         Command command = tx.getCommand(0);
         List<PublicKey> requiredSigners = command.getSigners();
         CommandData commandType = command.getValue();
@@ -192,8 +191,9 @@ public class WellContract implements Contract {
                 throw new IllegalArgumentException("CalGEM must sign the request.");
 
         } else if (commandType instanceof Commands.AddRemove) {
-            if (tx.getInputStates().size() == tx.getOutputStates().size()) {
-                throw new IllegalArgumentException("Number of inputs must match number of outputs.");
+            if (!(tx.getInputStates().size() == tx.getOutputStates().size())) {
+                throw new IllegalArgumentException("Number of inputs must match number of outputs. Currently " +
+                        "Outputs: " + tx.getInputStates().size() + " Inputs: " + tx.getOutputStates().size());
             }
 
         } else {

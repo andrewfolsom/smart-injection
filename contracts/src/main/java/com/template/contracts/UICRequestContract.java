@@ -22,9 +22,6 @@ public class UICRequestContract implements Contract {
     // does not throw an exception.
     @Override
     public void verify(LedgerTransaction tx) throws IllegalArgumentException {
-        if (tx.getCommands().size() != 1) {
-            throw new IllegalArgumentException("Transaction must have one command.");
-        }
 
         Command command = tx.getCommand(0);
         List<PublicKey> requiredSigner = command.getSigners();
@@ -66,6 +63,9 @@ public class UICRequestContract implements Contract {
             if (!(output1.getUICProjectNumber().equals("NONE")))
                 throw new IllegalArgumentException("UIC project number must be NONE");
         }
+        else if (commandType instanceof Commands.Update) {
+
+        }
 
     }
 
@@ -73,5 +73,6 @@ public class UICRequestContract implements Contract {
     public interface Commands extends CommandData {
         class Approve implements Commands {}
         class Create implements Commands {}
+        class Update implements Commands {}
     }
 }
