@@ -34,7 +34,7 @@ public class UICRequestContract implements Contract {
             }
 
             if (tx.getOutputStates().size() > 2) {
-                throw new IllegalArgumentException("Approve must have 2 outputs.");
+                throw new IllegalArgumentException("Approve must have 2 or more outputs.");
             }
 
             // Content Constraints
@@ -55,6 +55,30 @@ public class UICRequestContract implements Contract {
                 throw new IllegalArgumentException("CalGEM must sign the approved transaction");
             }
         }
+        else if (commandType instanceof Commands.Deny) {
+            if (tx.getInputStates().size() != 1) {
+                throw new IllegalArgumentException("Deny must have 1 input.");
+            }
+
+            if (tx.getOutputStates().size() != 1) {
+                throw new IllegalArgumentException("Deny must have 1 output.");
+            }
+
+            // Content Constraints
+            UICProjectState output1 = (UICProjectState) tx.getOutput(0);
+
+            // Required Signers constraints;
+            Party operator = (Party) output1.getParticipants().get(0);
+            Party calGem = (Party) output1.getParticipants().get(1);
+            PublicKey operatorKey = operator.getOwningKey();
+            if (!(requiredSigner.contains(operatorKey))) {
+                throw new IllegalArgumentException("Well Operator must sign the approved transaction");
+            }
+            if (!(requiredSigner.contains(calGem.getOwningKey()))) {
+                throw new IllegalArgumentException("CalGEM must sign the approved transaction");
+            }
+
+        }
         else if (commandType instanceof Commands.Create) {
             if (tx.getInputStates().size() != 0) { throw new IllegalArgumentException("Approve must have 0 input."); }
             if (tx.getOutputStates().size() != 1) { throw new IllegalArgumentException("Approve must have 1 outputs."); }
@@ -72,6 +96,7 @@ public class UICRequestContract implements Contract {
     public interface Commands extends CommandData {
         class Approve implements Commands {}
         class Create implements Commands {}
+        class Deny implements Commands {}
         class Request implements Commands {}
         class Update implements Commands {}
     }

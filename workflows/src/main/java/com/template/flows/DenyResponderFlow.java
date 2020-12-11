@@ -1,6 +1,7 @@
 package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+import com.template.states.UICProjectState;
 import com.template.states.WellState;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.crypto.SecureHash;
@@ -35,8 +36,8 @@ public class DenyResponderFlow extends FlowLogic<SignedTransaction> {
             protected void checkTransaction(@NotNull SignedTransaction stx) throws FlowException {
                 requireThat(require -> {
                     ContractState output = stx.getTx().getOutputs().get(0).getData();
-                    require.using("Must be a well transaction.", output instanceof WellState);
-                    assert output instanceof WellState;
+                    require.using("Must be a well transaction.", output instanceof UICProjectState);
+                    assert output instanceof UICProjectState;
                     return null;
                 });
             }
