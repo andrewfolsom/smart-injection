@@ -92,8 +92,6 @@ public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
         UICProjectState newUICState = new UICProjectState("UIC Approved", uicProjectNumber, oldUICState.getParticipants(),
                 oldUICState);
 
-        Set<Class<WellState>> contractStateTypes = new HashSet<>();
-        contractStateTypes.add(WellState.class);
         criteria = new QueryCriteria.LinearStateQueryCriteria(null, newUICState.getWellIds(), Vault.StateStatus.UNCONSUMED, null);
 
         List<StateAndRef<WellState>> wellRefs = getServiceHub().getVaultService().queryBy(WellState.class, criteria)
