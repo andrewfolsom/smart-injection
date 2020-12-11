@@ -34,7 +34,7 @@ public class UICRequestResponderFlow extends FlowLogic<SignedTransaction> {
                 requireThat(require -> {
                     ContractState output = stx.getTx().getOutputs().get(0).getData();
                     require.using("This must be a UIC Project transaction.", output instanceof UICProjectState);
-                    assert output instanceof WellState;
+                    assert output instanceof UICProjectState;
                     return null;
                 });
             }

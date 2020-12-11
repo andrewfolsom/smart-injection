@@ -16,10 +16,7 @@ import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 // ******************
 // * Initiator flow *
@@ -28,10 +25,10 @@ import java.util.List;
 @StartableByRPC
 public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
     private final String externalId;
-    private final String API;
+    private final List<String> APIs;
     private final String uicProjectNumber;
-    private final String permit;
-    private final String permitExpiration;
+    private final List<String> permits;
+    private final List<String> permitExpirations;
 
     private final ProgressTracker.Step GENERATING_TRANSACTION = new ProgressTracker.Step("Generating transaction based on new Well.");
     private final ProgressTracker.Step VERIFYING_TRANSACTION = new ProgressTracker.Step("Verifying contract constraints.");
@@ -57,13 +54,13 @@ public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
             FINALISING_TRANSACTION
     );
 
-    public ApproveInitiatorFlow(String externalId, String API, String uicProjectNumber, String permit,
-                                String permitExpiration) {
+    public ApproveInitiatorFlow(String externalId, List<String> APIs, String uicProjectNumber, List<String> permits,
+                                List<String> permitExpirations) {
         this.externalId = externalId;
-        this.API = API;
+        this.APIs = APIs;
         this.uicProjectNumber = uicProjectNumber;
-        this.permit = permit;
-        this.permitExpiration = permitExpiration;
+        this.permits = permits;
+        this.permitExpirations = permitExpirations;
     }
 
     @Override
@@ -87,24 +84,57 @@ public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
         QueryCriteria criteria = new QueryCriteria.LinearStateQueryCriteria(null, null, externalIdList,
                 Vault.StateStatus.UNCONSUMED);
 
-        StateAndRef<WellState> input = getServiceHub().getVaultService().queryBy(WellState.class, criteria)
+        StateAndRef<UICProjectState> input = getServiceHub().getVaultService().queryBy(UICProjectState.class, criteria)
                 .getStates().get(0);
 
         // Generate an unsigned transaction.
-        WellState oldWellState = input.getState().getData();
-        WellState newWellState = new WellState("UIC Approved", API, uicProjectNumber, permit, permitExpiration,
-                oldWellState);
-        UICProjectState uicProjectState = new UICProjectState(uicProjectNumber, newWellState.getParticipants());
-        final Command<WellContract.Commands.Approve> txCommand = new Command<>(
+        UICProjectState oldUICState = input.getState().getData();
+        UICProjectState newUICState = new UICProjectState("UIC Approved", uicProjectNumber, oldUICState.getParticipants(),
+                oldUICState);
+
+        Set<Class<WellState>> contractStateTypes = new HashSet<>();
+        contractStateTypes.add(WellState.class);
+        criteria = new QueryCriteria.LinearStateQueryCriteria(null, newUICState.getWellIds(), Vault.StateStatus.UNCONSUMED, null);
+
+        List<StateAndRef<WellState>> wellRefs = getServiceHub().getVaultService().queryBy(WellState.class, criteria)
+                .getStates();
+
+        List<WellState> oldWellStates = new ArrayList<>();
+        List<WellState> newWellStates = new ArrayList<>();
+
+        // Extract WellState data from references
+        for(StateAndRef<WellState> well: wellRefs) {
+            oldWellStates.add(well.getState().getData());
+        }
+
+        // Generate new well states with API, permit, permit expiration and UIC project number
+        for(int i = 0; i < oldWellStates.size(); i++) {
+            WellState newWell = new WellState(APIs.get(i), uicProjectNumber, permits.get(i), permitExpirations.get(i),
+                    oldWellStates.get(i));
+            newWellStates.add(newWell);
+        }
+
+        // Create Approve command for the UICProjectState
+        final Command<UICRequestContract.Commands.Approve> uicTxCommand = new Command<>(
+                new UICRequestContract.Commands.Approve(),
+                Arrays.asList(me.getOwningKey(), newUICState.getParticipants().get(0).getOwningKey())
+        );
+
+        // Create Approve command for WellStates
+        final Command<WellContract.Commands.Approve> wellTxCommand = new Command<>(
                 new WellContract.Commands.Approve(),
-                Arrays.asList(me.getOwningKey(), newWellState.getOperator().getOwningKey())
+                Arrays.asList(me.getOwningKey(), newUICState.getParticipants().get(0).getOwningKey())
         );
 
         final TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(input)
-                .addOutputState(newWellState, WellContract.ID)
-                .addOutputState(uicProjectState, UICRequestContract.ID)
-                .addCommand(txCommand);
+                .addOutputState(newUICState, UICRequestContract.ID)
+                .addCommand(uicTxCommand)
+                .addCommand(wellTxCommand);
+
+        for(WellState well: newWellStates) {
+            txBuilder.addOutputState(well, WellContract.ID);
+        }
 
         // Stage 2.
         progressTracker.setCurrentStep(VERIFYING_TRANSACTION);
@@ -120,7 +150,7 @@ public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
         assert getProgressTracker() != null;
         getProgressTracker().setCurrentStep(GATHERING_SIGS);
         // Send the state to the counterparty, and receive it back with their signature.
-        FlowSession otherPartySession = initiateFlow(newWellState.getOperator());
+        FlowSession otherPartySession = initiateFlow(newUICState.getParticipants().get(0));
         final SignedTransaction fullySignedTx = subFlow(
                 new CollectSignaturesFlow(partSignedTx, Collections.singletonList(otherPartySession))
         );

@@ -165,25 +165,37 @@ public class WellContract implements Contract {
                 throw new IllegalArgumentException("Approve must have 1 input.");
             }
 
-            if (tx.getOutputStates().size() != 2) {
-                throw new IllegalArgumentException("Approve must have 2 outputs.");
+            if (tx.getOutputStates().size() > 2) {
+                throw new IllegalArgumentException("Approve must have 2 or more outputs");
             }
 
             // Content Constraints
-            WellState output1 = (WellState) tx.getOutput(0);
-            UICProjectState output2 = (UICProjectState) tx.getOutput(1);
+            UICProjectState uicOutput = (UICProjectState) tx.getOutput(0);
+            List<ContractState> wellOutputs = tx.getOutputStates();
 
             // Well specific constraints
-            if (output1.getAPI() == null)
-                throw new IllegalArgumentException("API must be provided at approval.");
-            if (output1.getPermit() == null)
-                throw new IllegalArgumentException("Permit must be provided at approval.");
-            if (output1.getPermitExpiration() == null)
-                throw new IllegalArgumentException("Permit expiration must be provided at approval.");
+            WellState output;
+            for(int i = 1; i < wellOutputs.size(); i++) {
+                output = (WellState) wellOutputs.get(i);
+                if (output.getAPI() == null)
+                    throw new IllegalArgumentException("API must be provided at approval.");
+                if (output.getPermit() == null)
+                    throw new IllegalArgumentException("Permit must be provided at approval.");
+                if (output.getPermitExpiration() == null)
+                    throw new IllegalArgumentException("Permit expiration must be provided at approval.");
+            }
+
+//            if (output1.getAPI() == null)
+//                throw new IllegalArgumentException("API must be provided at approval.");
+//            if (output1.getPermit() == null)
+//                throw new IllegalArgumentException("Permit must be provided at approval.");
+//            if (output1.getPermitExpiration() == null)
+//                throw new IllegalArgumentException("Permit expiration must be provided at approval.");
 
             // Required Signers constraints;
-            Party operator = output1.getOperator();
-            Party calGem = output1.getCalGem();
+            output = (WellState) wellOutputs.get(1);
+            Party operator = output.getOperator();
+            Party calGem = output.getCalGem();
             PublicKey operatorKey = operator.getOwningKey();
             if (!(requiredSigners.contains(operatorKey)))
                 throw new IllegalArgumentException("Well Operator must sign the request.");

@@ -33,21 +33,20 @@ public class UICRequestContract implements Contract {
                 throw new IllegalArgumentException("Approve must have 1 input.");
             }
 
-            if (tx.getOutputStates().size() != 2) {
+            if (tx.getOutputStates().size() > 2) {
                 throw new IllegalArgumentException("Approve must have 2 outputs.");
             }
 
             // Content Constraints
-            WellState output1 = (WellState) tx.getOutput(0);
-            UICProjectState output2 = (UICProjectState) tx.getOutput(1);
+            UICProjectState output1 = (UICProjectState) tx.getOutput(0);
 
             // UIC specific constraints
-            if (output2.getUICProjectNumber() == null)
+            if (output1.getUICProjectNumber() == null)
                 throw new IllegalArgumentException("UIC project number must be provided");
 
             // Required Signers constraints;
-            Party operator = output1.getOperator();
-            Party calGem = output1.getCalGem();
+            Party operator = (Party) output1.getParticipants().get(0);
+            Party calGem = (Party) output1.getParticipants().get(1);
             PublicKey operatorKey = operator.getOwningKey();
             if (!(requiredSigner.contains(operatorKey))) {
                 throw new IllegalArgumentException("Well Operator must sign the approved transaction");

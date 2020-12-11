@@ -59,13 +59,13 @@ public class UICProjectState implements LinearState {
     }
 
     //copy constructor, for updating UIC projectNum
-    public UICProjectState(String UICProjectNumber, List<AbstractParty> participants, UICProjectState u) {
+    public UICProjectState(String status, String UICProjectNumber, List<AbstractParty> participants, UICProjectState u) {
         this.linearId = u.linearId;
         this.UICProjectNumber = UICProjectNumber;
         this.participants = new ArrayList<>(participants);
         this.projectName = u.projectName;
         this.wellIds = u.wellIds;
-        this.status = u.status;
+        this.status = status;
     }
 
     // For UICRequestInitiatorFlow

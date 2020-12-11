@@ -1,6 +1,7 @@
 package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+import com.template.states.UICProjectState;
 import com.template.states.WellState;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.crypto.SecureHash;
@@ -32,8 +33,8 @@ public class ApproveResponderFlow extends FlowLogic<SignedTransaction> {
             protected void checkTransaction(@NotNull SignedTransaction stx) {
                 requireThat(require -> {
                     ContractState output = stx.getTx().getOutputs().get(0).getData();
-                    require.using("This must be a Well transaction.", output instanceof WellState);
-                    assert output instanceof WellState;
+                    require.using("This must be a UIC Project transaction.", output instanceof UICProjectState);
+                    assert output instanceof UICProjectState;
                     return null;
                 });
             }

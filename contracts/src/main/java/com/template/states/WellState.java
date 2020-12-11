@@ -125,10 +125,10 @@ public class WellState implements LinearState {
     }
 
     // For use in the CalGem Approval process
-    public WellState(String newStatus, String API, String UICProjectNumber, String permit, String permitExpiration,
+    public WellState(String API, String UICProjectNumber, String permit, String permitExpiration,
                      WellState w) {
         this.linearId = w.linearId;
-        this.status = newStatus;
+        this.status = w.status;
         this.wellName = w.wellName;
         this.owner = w.owner;
         this.operator = w.operator;
