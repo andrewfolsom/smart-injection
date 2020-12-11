@@ -22,18 +22,20 @@ Simple class for the UICProjectState. For now only includes non-attachments.
 public class UICProjectState implements LinearState {
     private final UniqueIdentifier linearId;
     private final String UICProjectNumber;
-    private List<AbstractParty> participants;
-    private String projectName;
-    private List<UniqueIdentifier> wellIds;
+    private final List<AbstractParty> participants;
+    private final String projectName;
+    private final List<UniqueIdentifier> wellIds;
+    private final String status;
 
     @ConstructorForDeserialization
     public UICProjectState(UniqueIdentifier linearId, String UICProjectNumber, List<AbstractParty> participants,
-                            String projectName, List<UniqueIdentifier> wellIds) {
+                            String projectName, List<UniqueIdentifier> wellIds, String status) {
         this.linearId = linearId;
         this.UICProjectNumber = UICProjectNumber;
         this.participants = participants;
         this.projectName = projectName;
         this.wellIds = wellIds;
+        this.status = status;
     }
 
     //For CreateProjectFlow
@@ -43,6 +45,7 @@ public class UICProjectState implements LinearState {
         this.projectName = projectName;
         this.participants = new ArrayList<>(participants);
         this.wellIds = new ArrayList<>();
+        this.status = "Unapproved";
     }
 
     //For AddRemoveFlow
@@ -52,6 +55,7 @@ public class UICProjectState implements LinearState {
         this.projectName = u.projectName;
         this.participants = u.participants;
         this.wellIds = new ArrayList<>(wellIds);
+        this.status = u.status;
     }
 
     //copy constructor, for updating UIC projectNum
@@ -60,6 +64,18 @@ public class UICProjectState implements LinearState {
         this.UICProjectNumber = UICProjectNumber;
         this.participants = new ArrayList<>(participants);
         this.projectName = u.projectName;
+        this.wellIds = u.wellIds;
+        this.status = u.status;
+    }
+
+    // For UICRequestInitiatorFlow
+    public UICProjectState(String newStatus, UICProjectState u) {
+        this.linearId = u.getLinearId();
+        this.UICProjectNumber = u.getUICProjectNumber();
+        this.participants = u.getParticipants();
+        this.projectName = u.getProjectName();
+        this.wellIds = u.getWellIds();
+        this.status = newStatus;
     }
 
     public String getUICProjectNumber() { return UICProjectNumber; }
@@ -71,4 +87,12 @@ public class UICProjectState implements LinearState {
     @NotNull
     @Override
     public List<AbstractParty> getParticipants() { return participants; }
+
+    public List<UniqueIdentifier> getWellIds() { return wellIds; }
+
+    public String getStatus() { return status; }
+
+    public String getProjectName() { return projectName; }
+
+    public void addParticipant(Party newParticipant) { participants.add(newParticipant); }
 }

@@ -1,7 +1,9 @@
 package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+import com.template.contracts.UICRequestContract;
 import com.template.contracts.WellContract;
+import com.template.states.UICProjectState;
 import com.template.states.WellState;
 import net.corda.core.contracts.Command;
 import net.corda.core.contracts.StateAndRef;
@@ -76,16 +78,16 @@ public class UICRequestInitiatorFlow extends FlowLogic<SignedTransaction> {
         QueryCriteria criteria = new QueryCriteria.LinearStateQueryCriteria(null, null, externalIdList,
                 Vault.StateStatus.UNCONSUMED);
 
-        StateAndRef<WellState> input = getServiceHub().getVaultService().queryBy(WellState.class, criteria)
+        StateAndRef<UICProjectState > input = getServiceHub().getVaultService().queryBy(UICProjectState.class, criteria)
                 .getStates().get(0);
 
         // Generate an unsigned transaction.
-        WellState oldState = input.getState().getData();
-        WellState newState = new WellState("UIC Requested", oldState);
-        newState.addParticipant(newState.getCalGem());
-        final Command<WellContract.Commands.Request> txCommand = new Command<>(
-                new WellContract.Commands.Request(),
-                Arrays.asList(newState.getOperator().getOwningKey(), newState.getCalGem().getOwningKey())
+        UICProjectState oldState = input.getState().getData();
+        UICProjectState newState = new UICProjectState("Pending Approval", oldState);
+        newState.addParticipant(calGem);
+        final Command<UICRequestContract.Commands.Request> txCommand = new Command<>(
+                new UICRequestContract.Commands.Request(),
+                Arrays.asList(newState.getParticipants().get(0).getOwningKey(), calGem.getOwningKey())
         );
 
         final TransactionBuilder txBuilder = new TransactionBuilder(notary)

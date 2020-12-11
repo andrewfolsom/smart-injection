@@ -73,6 +73,7 @@ public class UICRequestContract implements Contract {
     public interface Commands extends CommandData {
         class Approve implements Commands {}
         class Create implements Commands {}
+        class Request implements Commands {}
         class Update implements Commands {}
     }
 }
