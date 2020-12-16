@@ -57,10 +57,10 @@ public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
     public ApproveInitiatorFlow(String externalId, List<String> APIs, String uicProjectNumber, List<String> permits,
                                 List<String> permitExpirations) {
         this.externalId = externalId;
-        this.APIs = APIs;
+        this.APIs = new ArrayList<>(APIs);
         this.uicProjectNumber = uicProjectNumber;
-        this.permits = permits;
-        this.permitExpirations = permitExpirations;
+        this.permits = new ArrayList<>(permits);
+        this.permitExpirations = new ArrayList<>(permitExpirations);
     }
 
     @Override
@@ -129,6 +129,10 @@ public class ApproveInitiatorFlow extends FlowLogic<SignedTransaction> {
                 .addOutputState(newUICState, UICRequestContract.ID)
                 .addCommand(uicTxCommand)
                 .addCommand(wellTxCommand);
+
+        for(StateAndRef<WellState> ref: wellRefs) {
+            txBuilder.addInputState(ref);
+        }
 
         for(WellState well: newWellStates) {
             txBuilder.addOutputState(well, WellContract.ID);

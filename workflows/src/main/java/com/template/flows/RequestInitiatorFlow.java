@@ -6,6 +6,7 @@ import com.template.states.WellState;
 import net.corda.core.contracts.Command;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.flows.*;
+import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.node.services.Vault;
 import net.corda.core.node.services.vault.QueryCriteria;
@@ -81,8 +82,9 @@ public class RequestInitiatorFlow extends FlowLogic<SignedTransaction> {
 
         // Generate an unsigned transaction.
         WellState oldState = input.getState().getData();
-        WellState newState = new WellState("UIC Requested", oldState);
-        newState.addParticipant(newState.getCalGem());
+        List<AbstractParty> updatedParticipants = new ArrayList<>(oldState.getParticipants());
+        updatedParticipants.add(calGem);
+        WellState newState = new WellState(updatedParticipants,oldState);
         final Command<WellContract.Commands.Request> txCommand = new Command<>(
                 new WellContract.Commands.Request(),
                 Arrays.asList(newState.getOperator().getOwningKey(), newState.getCalGem().getOwningKey())

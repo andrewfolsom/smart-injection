@@ -24,8 +24,13 @@ public class WellContract implements Contract {
     // does not throw an exception.
     @Override
     public void verify(LedgerTransaction tx) throws IllegalArgumentException {
+        Command command;
+        if(tx.getCommands().size() > 1) {
+            command = tx.getCommand(1);
+        } else {
+            command = tx.getCommand(0);
+        }
 
-        Command command = tx.getCommand(0);
         List<PublicKey> requiredSigners = command.getSigners();
         CommandData commandType = command.getValue();
 
@@ -99,35 +104,22 @@ public class WellContract implements Contract {
             // Well operator requesting UIC review.
 
             // Shape Constraints: 1 input, 1 output;
-            if (tx.getInputStates().size() != 1) {
-                throw new IllegalArgumentException("Must contain exactly 1 input.");
+            if (tx.getInputStates().size() < 2) {
+                throw new IllegalArgumentException("Must contain 2 or more inputs.");
             }
 
-            if (tx.getOutputStates().size() != 1) {
-                throw new IllegalArgumentException("Must contain exactly 1 output.");
+            if (tx.getOutputStates().size() < 2) {
+                throw new IllegalArgumentException("Must contain 2 or more outputs.");
             }
 
             // Content Constraints
             // Check that all well fields, other than status, are unchanged.
-            WellState inputWell = (WellState) tx.getInput(0);
-            WellState outputWell = (WellState) tx.getOutput(0);
-
-            if (!outputWell.sameAs(inputWell)) {
-                throw new IllegalArgumentException("Unauthorized changes made to well data.");
-            }
-
-            // Check that the permit, Aquifer Exemption, and AoC fields are included
-            if (inputWell.getPermit() == null) {
-                throw new IllegalArgumentException("Permit must be included.");
-            }
+            WellState outputWell = (WellState) tx.getOutput(1);
 
             Party operator = outputWell.getOperator();
-            Party calGem = outputWell.getCalGem();
             PublicKey operatorKey = operator.getOwningKey();
             if (!(requiredSigners.contains(operatorKey)))
                 throw new IllegalArgumentException("Well Operator must sign the request.");
-            if (!(requiredSigners.contains(calGem.getOwningKey())))
-                throw new IllegalArgumentException(("CalGEM must sign the request"));
 
         } else if (commandType instanceof Commands.Deny) {
             // CalGEM denying a submitted UIC request.
@@ -161,11 +153,11 @@ public class WellContract implements Contract {
         } else if (commandType instanceof Commands.Approve) {
 
             // Shape Constraints
-            if (tx.getInputStates().size() != 1) {
+            if (tx.getInputStates().size() < 2) {
                 throw new IllegalArgumentException("Approve must have 1 input.");
             }
 
-            if (tx.getOutputStates().size() > 2) {
+            if (tx.getOutputStates().size() < 2) {
                 throw new IllegalArgumentException("Approve must have 2 or more outputs");
             }
 

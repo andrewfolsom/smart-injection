@@ -8,6 +8,7 @@ import com.template.states.WellState;
 import net.corda.core.contracts.Command;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.flows.*;
+import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.node.services.Vault;
 import net.corda.core.node.services.vault.QueryCriteria;
@@ -69,6 +70,7 @@ public class UICRequestInitiatorFlow extends FlowLogic<SignedTransaction> {
         // Initiator flow logic goes here.
 
         final Party notary  = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
+        final Party me = getOurIdentity();
 
         // Stage 1.
         progressTracker.setCurrentStep(GENERATING_TRANSACTION);
@@ -82,18 +84,66 @@ public class UICRequestInitiatorFlow extends FlowLogic<SignedTransaction> {
                 .getStates().get(0);
 
         // Generate an unsigned transaction.
-        UICProjectState oldState = input.getState().getData();
-        UICProjectState newState = new UICProjectState("Pending Approval", oldState);
-        newState.addParticipant(calGem);
-        final Command<UICRequestContract.Commands.Request> txCommand = new Command<>(
+        UICProjectState oldUICState = input.getState().getData();
+        List<AbstractParty> updatedParticipants = new ArrayList<>(oldUICState.getParticipants());
+        updatedParticipants.add(calGem);
+        UICProjectState newUICState = new UICProjectState("Pending Approval", updatedParticipants, oldUICState);
+
+        criteria = new QueryCriteria.LinearStateQueryCriteria(null, newUICState.getWellIds(), Vault.StateStatus.UNCONSUMED, null);
+
+        List<StateAndRef<WellState>> wellRefs = getServiceHub().getVaultService().queryBy(WellState.class, criteria)
+                .getStates();
+
+        getLogger().info("Number of Well References: " + wellRefs.size());
+
+        List<WellState> oldWellStates = new ArrayList<>();
+        List<WellState> newWellStates = new ArrayList<>();
+
+        // Extract WellState data from references
+        for(StateAndRef<WellState> well: wellRefs) {
+            oldWellStates.add(well.getState().getData());
+        }
+
+        // Add CalGem to the wells in the project
+        for(WellState well: oldWellStates) {
+            WellState newWell = new WellState(updatedParticipants, well);
+            newWellStates.add(newWell);
+        }
+
+//        final Command<UICRequestContract.Commands.Request> txCommand = new Command<>(
+//                new UICRequestContract.Commands.Request(),
+//                Arrays.asList(newUICState.getParticipants().get(0).getOwningKey(), calGem.getOwningKey())
+//        );
+
+        // Create Request command for the UICProjectState
+        final Command<UICRequestContract.Commands.Request> uicTxCommand = new Command<>(
                 new UICRequestContract.Commands.Request(),
-                Arrays.asList(newState.getParticipants().get(0).getOwningKey(), calGem.getOwningKey())
+                Arrays.asList(me.getOwningKey(), calGem.getOwningKey())
+        );
+
+        // Create Request command for WellStates
+        final Command<WellContract.Commands.Request> wellTxCommand = new Command<>(
+                new WellContract.Commands.Request(),
+                Arrays.asList(me.getOwningKey(), calGem.getOwningKey())
         );
 
         final TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(input)
-                .addOutputState(newState, WellContract.ID)
-                .addCommand(txCommand);
+                .addOutputState(newUICState, UICRequestContract.ID)
+                .addCommand(uicTxCommand)
+                .addCommand(wellTxCommand);
+
+        // Add old wells as inputs
+        for(StateAndRef<WellState> refs: wellRefs) {
+            txBuilder.addInputState(refs);
+        }
+
+        getLogger().info("Size of the Transaction Input: " + txBuilder.inputStates().size());
+
+        // Add updated wells as outputs
+        for(WellState well: newWellStates) {
+            txBuilder.addOutputState(well, WellContract.ID);
+        }
 
         // Stage 2.
         progressTracker.setCurrentStep(VERIFYING_TRANSACTION);

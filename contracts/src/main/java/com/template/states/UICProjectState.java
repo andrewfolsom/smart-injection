@@ -69,10 +69,10 @@ public class UICProjectState implements LinearState {
     }
 
     // For UICRequestInitiatorFlow
-    public UICProjectState(String newStatus, UICProjectState u) {
+    public UICProjectState(String newStatus, List<AbstractParty> participants, UICProjectState u) {
         this.linearId = u.getLinearId();
         this.UICProjectNumber = u.getUICProjectNumber();
-        this.participants = u.getParticipants();
+        this.participants = participants;
         this.projectName = u.getProjectName();
         this.wellIds = u.getWellIds();
         this.status = newStatus;
@@ -94,5 +94,4 @@ public class UICProjectState implements LinearState {
 
     public String getProjectName() { return projectName; }
 
-    public void addParticipant(Party newParticipant) { participants.add(newParticipant); }
 }

@@ -147,6 +147,26 @@ public class WellState implements LinearState {
         this.participants = new ArrayList<>(w.participants);
     }
 
+    // Constructor for the UIC Request Flow
+    public WellState(List<AbstractParty> updatedParticipants, WellState w) {
+        this.linearId = w.linearId;
+        this.status = w.status;
+        this.wellName = w.wellName;
+        this.owner = w.owner;
+        this.operator = w.operator;
+        this.calGem = w.calGem;
+        this.lease = w.lease;
+        this.locationType = w.locationType;
+        this.location = w.location;
+        this.spudDate = w.spudDate;
+        this.API = w.API;
+        this.UICProjectNumber = w.UICProjectNumber;
+        this.permit = w.permit;
+        this.permitExpiration = w.permitExpiration;
+        this.participants = new ArrayList<>(updatedParticipants);
+        this.projectName = w.projectName;
+    }
+
     public String getStatus() { return status; }
     public String getWellName() { return wellName; }
     public Party getOwner() { return owner; }
@@ -188,8 +208,4 @@ public class WellState implements LinearState {
         }
     }
 
-    // Update participant list
-    public void addParticipant(Party newParticipant) {
-        this.participants.add(newParticipant);
-    }
 }

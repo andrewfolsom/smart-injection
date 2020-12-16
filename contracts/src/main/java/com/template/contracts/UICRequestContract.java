@@ -29,11 +29,11 @@ public class UICRequestContract implements Contract {
 
         if(commandType instanceof Commands.Approve) {
             // Shape Constraints
-            if (tx.getInputStates().size() != 1) {
+            if (tx.getInputStates().size() < 2) {
                 throw new IllegalArgumentException("Approve must have 1 input.");
             }
 
-            if (tx.getOutputStates().size() > 2) {
+            if (tx.getOutputStates().size() < 2) {
                 throw new IllegalArgumentException("Approve must have 2 or more outputs.");
             }
 
@@ -85,6 +85,25 @@ public class UICRequestContract implements Contract {
             UICProjectState output1 = (UICProjectState) tx.getOutput(0);
             if (!(output1.getUICProjectNumber().equals("NONE")))
                 throw new IllegalArgumentException("UIC project number must be NONE");
+        }
+        else if (commandType instanceof Commands.Request) {
+            if (tx.getInputStates().size() < 2) {
+                throw new IllegalArgumentException("Request must have 2 or more inputs. Inputs provided: " + tx.getInputStates().size());
+            }
+
+            if (tx.getOutputStates().size() < 2) {
+                throw new IllegalArgumentException("Request must have 2 or more outputs.");
+            }
+
+            // Content Constraints
+            UICProjectState output1 = (UICProjectState) tx.getOutput(0);
+
+            // Required Signers constraints;
+            Party operator = (Party) output1.getParticipants().get(0);
+            PublicKey operatorKey = operator.getOwningKey();
+            if (!(requiredSigner.contains(operatorKey))) {
+                throw new IllegalArgumentException("Well Operator must sign the approved transaction");
+            }
         }
         else if (commandType instanceof Commands.Update) {
 

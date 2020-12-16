@@ -86,7 +86,7 @@ public class AddRemoveWellFlow extends FlowLogic<SignedTransaction> {
             WellState output = copyState(updateList.get(i), input.getState().getData());
             //add output to builder
             builder.addOutputState(output, WellContract.ID);
-            builder.addCommand(wellCommand);
+            //builder.addCommand(wellCommand);
             if (!(updateList.get(i).equals("NONE"))) {
                 wellIds.add(input.getState().getData().getLinearId());
             }
@@ -101,6 +101,7 @@ public class AddRemoveWellFlow extends FlowLogic<SignedTransaction> {
         UICProjectState UICoutput = new UICProjectState(wellIds, input.getState().getData());
         builder.addOutputState(UICoutput);
         builder.addCommand(uicCommand);
+        builder.addCommand(wellCommand);
 
 //        builder.addCommand(commandOne, Collections.singletonList(operator.getOwningKey()));
 //        builder.addCommand(commandTwo, Collections.singletonList(operator.getOwningKey()));

@@ -1,6 +1,7 @@
 package com.template.flows;
 
 import co.paralleluniverse.fibers.Suspendable;
+import com.template.contracts.UICRequestContract;
 import com.template.contracts.WellContract;
 import com.template.states.UICProjectState;
 import com.template.states.WellState;
@@ -81,15 +82,15 @@ public class DenyInitiatorFlow extends FlowLogic<SignedTransaction> {
 
         // Generate an unsigned transaction.
         UICProjectState oldState = input.getState().getData();
-        UICProjectState newState = new UICProjectState("Approval Denied", oldState);
-        final Command<WellContract.Commands.Deny> txCommand = new Command<>(
-                new WellContract.Commands.Deny(),
+        UICProjectState newState = new UICProjectState("Approval Denied", oldState.getParticipants(), oldState);
+        final Command<UICRequestContract.Commands.Deny> txCommand = new Command<>(
+                new UICRequestContract.Commands.Deny(),
                 Arrays.asList(me.getOwningKey(), newState.getParticipants().get(0).getOwningKey())
         );
 
         final TransactionBuilder txBuilder = new TransactionBuilder(notary)
                 .addInputState(input)
-                .addOutputState(newState, WellContract.ID)
+                .addOutputState(newState, UICRequestContract.ID)
                 .addCommand(txCommand);
 
         // Stage 2.

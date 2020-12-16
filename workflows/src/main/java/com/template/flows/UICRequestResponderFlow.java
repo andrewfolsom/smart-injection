@@ -15,7 +15,7 @@ import static net.corda.core.contracts.ContractsDSL.requireThat;
 // ******************
 // * Responder flow *
 // ******************
-@InitiatedBy(RequestInitiatorFlow.class)
+@InitiatedBy(UICRequestInitiatorFlow.class)
 public class UICRequestResponderFlow extends FlowLogic<SignedTransaction> {
     private final FlowSession counterpartySession;
 
