@@ -1,7 +1,10 @@
 package com.template.webserver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.template.flows.AddRemoveWellFlow;
 import com.template.flows.ProposeWellFlow;
+import com.template.flows.UpdateWellFlow;
+import com.template.flows.CreateProjectFlow;
 import com.template.states.WellState;
 import net.corda.client.jackson.JacksonSupport;
 import net.corda.core.contracts.StateAndRef;
@@ -9,11 +12,7 @@ import net.corda.core.crypto.SecureHash;
 import net.corda.core.identity.CordaX500Name;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.CordaRPCOps;
-import net.corda.core.node.services.Vault;
-import net.corda.core.node.services.vault.FieldInfo;
-import net.corda.core.node.services.vault.QueryCriteria;
 import net.corda.core.transactions.SignedTransaction;
-import netscape.javascript.JSObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -125,5 +124,77 @@ public class Controller {
                     .body(e.getMessage());
         }
     }
+    /*-----------------------------------------New-------*/
+    @GetMapping(value = "/proposeWellFlow", produces = "text/plain")
+    public ResponseEntity<String> proposeWellFlow(Party partyName, String wellName, String lease, List<Float> location,
+                                                    String locationType, String filePath, String fileUploader, String fileName)
+                                                    throws FileNotFoundException, FileAlreadyExistsException {
 
+        InputStream jarFile = new FileInputStream(filePath);
+        SecureHash hash = proxy.uploadAttachmentWithMetadata(jarFile, fileUploader, fileName);
+        Party me = proxy.nodeInfo().getLegalIdentities().get(0);
+
+        try {
+            SignedTransaction result = proxy.startTrackedFlowDynamic(ProposeWellFlow.class, wellName, lease, partyName,
+                    location, locationType, hash).getReturnValue().get();
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/updateWellFlow", produces = "text/plain")
+    public ResponseEntity<String> updateWellFlow(String externalId, String lease, List<Float> location, String locationType,
+                                                 List<Integer> spudDate)
+            throws FileNotFoundException, FileAlreadyExistsException {
+
+        try {
+            SignedTransaction result = proxy.startTrackedFlowDynamic(UpdateWellFlow.class, externalId, lease, location,
+                    locationType, spudDate).getReturnValue().get();
+            return ResponseEntity
+                    .status(HttpStatus.ACCEPTED)
+                    .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/createProjectFlow", produces = "text/plain")
+    public ResponseEntity<String> createProjectFlow(String projectName)
+            throws FileNotFoundException, FileAlreadyExistsException {
+
+        try {
+            SignedTransaction result = proxy.startTrackedFlowDynamic(CreateProjectFlow.class, projectName).getReturnValue().get();
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/addRemoveWellFlow", produces = "text/plain")
+    public ResponseEntity<String> addRemoveWellFlow(String projectName, List<String> externalIds, List<String> updates)
+            throws FileNotFoundException, FileAlreadyExistsException {
+
+        try {
+            SignedTransaction result = proxy.startTrackedFlowDynamic(AddRemoveWellFlow.class, projectName, externalIds,
+                    updates).getReturnValue().get();
+            return ResponseEntity
+                    .status(HttpStatus.ACCEPTED)
+                    .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
 }
