@@ -5,6 +5,7 @@ import com.template.flows.AddRemoveWellFlow;
 import com.template.flows.ProposeWellFlow;
 import com.template.flows.UpdateWellFlow;
 import com.template.flows.CreateProjectFlow;
+import com.template.states.UICProjectState;
 import com.template.states.WellState;
 import net.corda.client.jackson.JacksonSupport;
 import net.corda.core.contracts.StateAndRef;
@@ -55,6 +56,11 @@ public class Controller {
     @GetMapping(value = "/wells", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<StateAndRef<WellState>> getWells() {
         return proxy.vaultQuery(WellState.class).getStates();
+    }
+
+    @GetMapping(value = "/projects", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<StateAndRef<UICProjectState>> getProjects() {
+        return proxy.vaultQuery(UICProjectState.class).getStates();
     }
 
     @GetMapping(value = "/templateendpoint", produces = "text/plain")
