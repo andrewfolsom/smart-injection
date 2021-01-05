@@ -131,10 +131,15 @@ public class Controller {
         }
     }
     /*-----------------------------------------New-------*/
-    @GetMapping(value = "/proposeWellFlow", produces = "text/plain")
-    public ResponseEntity<String> proposeWellFlow(Party partyName, String wellName, String lease, List<Float> location,
-                                                    String locationType, String filePath, String fileUploader, String fileName)
-                                                    throws FileNotFoundException, FileAlreadyExistsException {
+    @PostMapping(value = "/proposeWellFlow", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> proposeWellFlow(@RequestParam("partyName") Party partyName,
+                                                  @RequestParam("wellName") String wellName,
+                                                  @RequestParam("lease") String lease,
+                                                  @RequestParam("location") List<Float> location,
+                                                  @RequestParam("locationType") String locationType,
+                                                  @RequestParam("filePath") String filePath,
+                                                  @RequestParam("fileUploader") String fileUploader,
+                                                  @RequestParam("fileName") String fileName) throws IOException {
 
         InputStream jarFile = new FileInputStream(filePath);
         SecureHash hash = proxy.uploadAttachmentWithMetadata(jarFile, fileUploader, fileName);
@@ -153,10 +158,12 @@ public class Controller {
         }
     }
 
-    @GetMapping(value = "/updateWellFlow", produces = "text/plain")
-    public ResponseEntity<String> updateWellFlow(String externalId, String lease, List<Float> location, String locationType,
-                                                 List<Integer> spudDate)
-            throws FileNotFoundException, FileAlreadyExistsException {
+    @PostMapping(value = "/updateWellFlow", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> updateWellFlow(@RequestParam("externalId") String externalId,
+                                                 @RequestParam("lease") String lease,
+                                                 @RequestParam("location") List<Float> location,
+                                                 @RequestParam("locationType") String locationType,
+                                                 @RequestParam("spudDate") List<Integer> spudDate) throws IOException {
 
         try {
             SignedTransaction result = proxy.startTrackedFlowDynamic(UpdateWellFlow.class, externalId, lease, location,
@@ -171,9 +178,8 @@ public class Controller {
         }
     }
 
-    @GetMapping(value = "/createProjectFlow", produces = "text/plain")
-    public ResponseEntity<String> createProjectFlow(String projectName)
-            throws FileNotFoundException, FileAlreadyExistsException {
+    @PostMapping(value = "/createProjectFlow", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> createProjectFlow(@RequestParam("projectName") String projectName) throws IOException {
 
         try {
             SignedTransaction result = proxy.startTrackedFlowDynamic(CreateProjectFlow.class, projectName).getReturnValue().get();
@@ -187,9 +193,10 @@ public class Controller {
         }
     }
 
-    @GetMapping(value = "/addRemoveWellFlow", produces = "text/plain")
-    public ResponseEntity<String> addRemoveWellFlow(String projectName, List<String> externalIds, List<String> updates)
-            throws FileNotFoundException, FileAlreadyExistsException {
+    @PostMapping(value = "/addRemoveWellFlow", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> addRemoveWellFlow(@RequestParam("projectName") String projectName,
+                                                    @RequestParam("externalIds") List<String> externalIds,
+                                                    @RequestParam("updates") List<String> updates) throws IOException {
 
         try {
             SignedTransaction result = proxy.startTrackedFlowDynamic(AddRemoveWellFlow.class, projectName, externalIds,
