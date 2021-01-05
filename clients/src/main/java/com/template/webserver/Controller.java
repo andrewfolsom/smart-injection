@@ -222,7 +222,7 @@ public class Controller {
 
     }
 
-    @PostMapping(value = "/addRemoveWellFlow", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    @PostMapping(value = "/approve", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> approveProjectFlow(@RequestParam("externalId") String externalId,
                                                     @RequestParam("APIs") List<String> APIs,
                                                     @RequestParam("updates") String uicProjectNumber,
