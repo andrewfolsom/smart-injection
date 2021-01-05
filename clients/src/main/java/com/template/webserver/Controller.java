@@ -2,17 +2,20 @@ package com.template.webserver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.template.flows.AddRemoveWellFlow;
+import com.template.flows.CreateProjectFlow;
 import com.template.flows.ProposeWellFlow;
 import com.template.flows.UpdateWellFlow;
-import com.template.flows.CreateProjectFlow;
 import com.template.states.UICProjectState;
 import com.template.states.WellState;
 import net.corda.client.jackson.JacksonSupport;
 import net.corda.core.contracts.StateAndRef;
+import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.crypto.SecureHash;
 import net.corda.core.identity.CordaX500Name;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.CordaRPCOps;
+import net.corda.core.node.services.Vault;
+import net.corda.core.node.services.vault.QueryCriteria;
 import net.corda.core.transactions.SignedTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,16 +25,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
-import java.time.LocalDate;
-import java.util.*;
-import com.template.webserver.WellForm;
-import org.springframework.web.multipart.MultipartFile;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Define your API endpoints here.
@@ -210,4 +214,16 @@ public class Controller {
                     .body(e.getMessage());
         }
     }
+
+    @GetMapping(value = "/getProjectWellsQuery", produces = MediaType.TEXT_PLAIN_VALUE)
+    public List<StateAndRef<WellState>> getProjectWellsQuery(@RequestParam("wellIds") List<UniqueIdentifier> wellIds) throws IOException {
+
+        List<UniqueIdentifier> linearIds = new ArrayList<>(wellIds);
+        QueryCriteria linearCriteriaAll = new QueryCriteria.LinearStateQueryCriteria(null, linearIds, Vault.StateStatus.UNCONSUMED, null);
+
+        return proxy.vaultQueryByCriteria(linearCriteriaAll, WellState.class).getStates();
+
+    }
+
+
 }
