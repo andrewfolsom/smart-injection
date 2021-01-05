@@ -1,10 +1,7 @@
 package com.template.webserver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.template.flows.AddRemoveWellFlow;
-import com.template.flows.CreateProjectFlow;
-import com.template.flows.ProposeWellFlow;
-import com.template.flows.UpdateWellFlow;
+import com.template.flows.*;
 import com.template.states.UICProjectState;
 import com.template.states.WellState;
 import net.corda.client.jackson.JacksonSupport;
@@ -225,5 +222,37 @@ public class Controller {
 
     }
 
+    @PostMapping(value = "/addRemoveWellFlow", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> approveProjectFlow(@RequestParam("externalId") String externalId,
+                                                    @RequestParam("APIs") List<String> APIs,
+                                                    @RequestParam("updates") String uicProjectNumber,
+                                                    @RequestParam("permits") List<String> permits,
+                                                    @RequestParam("permitExpirations") List<String> permitExpirations) throws IOException {
 
+        try {
+            SignedTransaction result = proxy.startTrackedFlowDynamic(ApproveInitiatorFlow.class, externalId, APIs,
+                    uicProjectNumber, permits, permitExpirations).getReturnValue().get();
+            return ResponseEntity
+                    .status(HttpStatus.ACCEPTED)
+                    .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/deny", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> denyProjectFlow(@RequestParam("externalId") String externalId) {
+        try {
+            SignedTransaction result = proxy.startTrackedFlowDynamic(DenyInitiatorFlow.class, externalId).getReturnValue().get();
+            return ResponseEntity
+                    .status(HttpStatus.ACCEPTED)
+                    .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
 }
