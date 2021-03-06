@@ -42,6 +42,9 @@ public class AddRemoveWellFlow extends FlowLogic<SignedTransaction> {
         this.updateList = new ArrayList<>(updates);
         this.projectName = projectName;
         this.wellIds = new ArrayList<>();
+
+        System.out.print(this.externalIdList);
+        System.out.print(this.updateList);
     }
 
     public WellState copyState(String update, WellState d) {
@@ -77,32 +80,52 @@ public class AddRemoveWellFlow extends FlowLogic<SignedTransaction> {
             criteria = new QueryCriteria.LinearStateQueryCriteria(null,null,
                     Collections.singletonList(externalIdList.get(i)), Vault.StateStatus.UNCONSUMED);
 
-            //Grab well, this will be the input
-            StateAndRef<WellState> input = getServiceHub().getVaultService()
-                    .queryBy(WellState.class, criteria).getStates().get(0);
-            //add input to builder
-            builder.addInputState(input);
-            //create output with modified UICProjectNum
-            WellState output = copyState(updateList.get(i), input.getState().getData());
-            //add output to builder
-            builder.addOutputState(output, WellContract.ID);
-            //builder.addCommand(wellCommand);
-            if (!(updateList.get(i).equals("NONE"))) {
-                wellIds.add(input.getState().getData().getLinearId());
+            StateAndRef<WellState> input;
+            try {
+                //Grab well, this will be the input
+//                input = getServiceHub().getVaultService()
+//                        .queryBy(WellState.class, criteria).getStates().get(0);
+                List<StateAndRef<WellState>> stateList =  getServiceHub().getVaultService()
+                       .queryBy(WellState.class, criteria).getStates();
+                System.out.println(stateList.size());
+                System.out.println(stateList);
+                input = stateList.get(0);
+
+                //add input to builder
+                builder.addInputState(input);
+                //create output with modified UICProjectNum
+                WellState output = copyState(updateList.get(i), input.getState().getData());
+
+                //add output to builder
+                builder.addOutputState(output, WellContract.ID);
+                //builder.addCommand(wellCommand);
+                if (!(updateList.get(i).equals("NONE"))) {
+                    wellIds.add(input.getState().getData().getLinearId());
+
+                }
+            } catch (Exception e) {
+                System.out.print(1);
             }
+
+
         }
         criteria = new QueryCriteria.LinearStateQueryCriteria(null,null,
                 Collections.singletonList(projectName), Vault.StateStatus.UNCONSUMED);
 
-        StateAndRef<UICProjectState> input = getServiceHub().getVaultService()
-                .queryBy(UICProjectState.class, criteria).getStates().get(0);
-        builder.addInputState(input);
+        StateAndRef<UICProjectState> input;
+        try {
+            input = getServiceHub().getVaultService()
+                    .queryBy(UICProjectState.class, criteria).getStates().get(0);
+            builder.addInputState(input);
+            UICProjectState UICoutput = new UICProjectState(wellIds, input.getState().getData());
+            builder.addOutputState(UICoutput);
+            builder.addCommand(uicCommand);
+            builder.addCommand(wellCommand);
 
-        UICProjectState UICoutput = new UICProjectState(wellIds, input.getState().getData());
-        builder.addOutputState(UICoutput);
-        builder.addCommand(uicCommand);
-        builder.addCommand(wellCommand);
 
+        } catch (Exception e) {
+            System.out.print(2);
+        }
 //        builder.addCommand(commandOne, Collections.singletonList(operator.getOwningKey()));
 //        builder.addCommand(commandTwo, Collections.singletonList(operator.getOwningKey()));
         builder.verify(getServiceHub());
@@ -111,6 +134,8 @@ public class AddRemoveWellFlow extends FlowLogic<SignedTransaction> {
         List<FlowSession> session = Collections.emptyList();
 
         return subFlow(new FinalityFlow(signedTransaction, session));
+
+
     }
 }
 

@@ -29,10 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Define your API endpoints here.
@@ -196,12 +193,14 @@ public class Controller {
 
     @PostMapping(value = "/addRemoveWellFlow", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> addRemoveWellFlow(@RequestParam("projectName") String projectName,
-                                                    @RequestParam("externalIds") List<String> externalIds,
-                                                    @RequestParam("updates") List<String> updates) throws IOException {
+                                                    @RequestParam("externalIds") String externalIds,
+                                                    @RequestParam("updates") String updates) throws IOException {
+        List<String> idList = Arrays.asList(externalIds.split(","));
+        List<String> updateList = Arrays.asList(updates.split(","));
 
         try {
-            SignedTransaction result = proxy.startTrackedFlowDynamic(AddRemoveWellFlow.class, projectName, externalIds,
-                    updates).getReturnValue().get();
+            SignedTransaction result = proxy.startTrackedFlowDynamic(AddRemoveWellFlow.class, projectName, idList,
+                    updateList).getReturnValue().get();
             return ResponseEntity
                     .status(HttpStatus.ACCEPTED)
                     .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
