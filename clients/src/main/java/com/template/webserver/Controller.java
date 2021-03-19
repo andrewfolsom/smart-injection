@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -248,6 +249,22 @@ public class Controller {
             return ResponseEntity
                     .status(HttpStatus.ACCEPTED)
                     .body("Transaction ID " + result.getId() + " comitted to ledger.\n" + result.getTx().getOutput(0));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/submission", produces=MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> uicProjectRequest(@RequestParam("externalId") String externalId) throws IOException {
+        String name = "O=PartyB,L=New York,C=US";
+        Party calGem = Optional.ofNullable(proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(name))).orElseThrow(() -> new IllegalArgumentException("Unknown party name."));
+        try {
+            SignedTransaction result = proxy.startTrackedFlowDynamic(UICRequestInitiatorFlow.class, externalId, calGem).getReturnValue().get();
+            return ResponseEntity
+                    .status(HttpStatus.ACCEPTED)
+                    .body("Transaction ID " + result.getId() + " commited to ledger.\n" + result.getTx().getOutput(0));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
