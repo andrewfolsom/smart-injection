@@ -36,7 +36,7 @@ import java.util.*;
  * Define your API endpoints here.
  */
 @RestController
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4200/welloperator/create-well"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4200/welloperator/create-well", "http://localhost:4200/wo"})
 @RequestMapping("/") // The paths for HTTP requests are relative to this base path.
 public class Controller {
     private final CordaRPCOps proxy;
@@ -256,7 +256,7 @@ public class Controller {
         }
     }
 
-    @GetMapping(value = "/submission", produces=MediaType.TEXT_PLAIN_VALUE)
+    @PostMapping(value = "/submission", produces=MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> uicProjectRequest(@RequestParam("externalId") String externalId) throws IOException {
         String name = "O=PartyB,L=New York,C=US";
         Party calGem = Optional.ofNullable(proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(name))).orElseThrow(() -> new IllegalArgumentException("Unknown party name."));
