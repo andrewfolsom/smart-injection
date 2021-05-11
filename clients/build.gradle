@@ -41,3 +41,9 @@ task runTemplateServer(type: JavaExec, dependsOn: assemble) {
     main = 'com.template.webserver.Starter'
     args '--server.port=10050', '--config.rpc.host=localhost', '--config.rpc.port=10006', '--config.rpc.username=user1', '--config.rpc.password=test'
 }
+
+task runTemplateServer2(type: JavaExec, dependsOn: assemble) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.template.webserver.Starter'
+    args '--server.port=10051', '--config.rpc.host=localhost', '--config.rpc.port=10009', '--config.rpc.username=user1', '--config.rpc.password=test'
+}

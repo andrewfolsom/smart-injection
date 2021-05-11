@@ -36,7 +36,15 @@ import java.util.*;
  * Define your API endpoints here.
  */
 @RestController
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4200/welloperator/create-well", "http://localhost:4200/wo"})
+@CrossOrigin(origins = {
+        "http://localhost:4200",
+        "http://localhost:4200/welloperator/create-well",
+        "http://localhost:4200/wo",
+        "http://localhost:4200/reg",
+        "http://localhost:4200/wo/addRemoveWellFlow",
+        "http://localhost:4200/reg/project-review",
+
+})
 @RequestMapping("/") // The paths for HTTP requests are relative to this base path.
 public class Controller {
     private final CordaRPCOps proxy;
@@ -224,10 +232,13 @@ public class Controller {
 
     @PostMapping(value = "/approve", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> approveProjectFlow(@RequestParam("externalId") String externalId,
-                                                    @RequestParam("APIs") List<String> APIs,
+                                                    @RequestParam("APIs") String APIList,
                                                     @RequestParam("updates") String uicProjectNumber,
-                                                    @RequestParam("permits") List<String> permits,
-                                                    @RequestParam("permitExpirations") List<String> permitExpirations) throws IOException {
+                                                    @RequestParam("permits") String permitsList,
+                                                    @RequestParam("permitExpirations") String permitExpirationsList) throws IOException {
+        List<String> APIs = Arrays.asList(APIList.split(","));
+        List<String> permits = Arrays.asList(permitsList.split(","));
+        List<String> permitExpirations = Arrays.asList(permitExpirationsList.split(","));
 
         try {
             SignedTransaction result = proxy.startTrackedFlowDynamic(ApproveInitiatorFlow.class, externalId, APIs,
@@ -242,7 +253,7 @@ public class Controller {
         }
     }
 
-    @GetMapping(value = "/deny", produces = MediaType.TEXT_PLAIN_VALUE)
+    @PostMapping(value = "/deny", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> denyProjectFlow(@RequestParam("externalId") String externalId) {
         try {
             SignedTransaction result = proxy.startTrackedFlowDynamic(DenyInitiatorFlow.class, externalId).getReturnValue().get();

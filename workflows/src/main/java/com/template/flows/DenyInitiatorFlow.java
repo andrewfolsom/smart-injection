@@ -68,6 +68,7 @@ public class DenyInitiatorFlow extends FlowLogic<SignedTransaction> {
 
         final Party notary  = getServiceHub().getNetworkMapCache().getNotaryIdentities().get(0);
         final Party me = getOurIdentity();
+        System.out.println("me: " + me);
 
         // Stage 1.
         progressTracker.setCurrentStep(GENERATING_TRANSACTION);
@@ -108,6 +109,10 @@ public class DenyInitiatorFlow extends FlowLogic<SignedTransaction> {
         getProgressTracker().setCurrentStep(GATHERING_SIGS);
         // Send the state to the counterparty, and receive it back with their signature.
         FlowSession otherPartySession = initiateFlow(newState.getParticipants().get(0));
+
+        System.out.println("newState.getParticipants().get(0)" + newState.getParticipants().get(0)); //debugging
+        System.out.println("newState.getParticipants().get(1)" + newState.getParticipants().get(1)); //debugging
+
         final SignedTransaction fullySignedTx = subFlow(
                 new CollectSignaturesFlow(partSignedTx, Collections.singletonList(otherPartySession))
         );
