@@ -238,7 +238,10 @@ public class Controller {
                                                     @RequestParam("permitExpirations") String permitExpirationsList) throws IOException {
         List<String> APIs = Arrays.asList(APIList.split(","));
         List<String> permits = Arrays.asList(permitsList.split(","));
-        List<String> permitExpirations = Arrays.asList(permitExpirationsList.split(","));
+        List<String> permitExpirations = Arrays.asList(permitExpirationsList.split("],"));
+
+        System.out.println("permitExpList" + permitExpirationsList);
+        System.out.println("permitExp" + permitExpirations);
 
         try {
             SignedTransaction result = proxy.startTrackedFlowDynamic(ApproveInitiatorFlow.class, externalId, APIs,
