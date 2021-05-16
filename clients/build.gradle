@@ -27,7 +27,7 @@ dependencies {
 }
 
 springBoot {
-    mainClassName = "com.template.webserver.Server"
+    mainClassName = "com.template.webserver.Starter"
 }
 
 task runTemplateClient(type: JavaExec, dependsOn: assemble) {
